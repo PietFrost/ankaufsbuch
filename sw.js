@@ -1,7 +1,7 @@
 /* Ankaufsbuch — Offline-Cache.
    Hält App-Dateien lokal, damit die App ohne Netz startet.
    Deine Daten liegen NICHT hier, sondern in IndexedDB. */
-const CACHE = "ankaufsbuch-v6";
+const CACHE = "ankaufsbuch-v7";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

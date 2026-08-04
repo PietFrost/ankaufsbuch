@@ -236,7 +236,8 @@ details.fold .fb{padding:13px}
   #print{display:block;font-family:var(--sans);color:#000;font-size:11pt}
   .page{page-break-after:always;padding:0 0 8mm}
   .page:last-child{page-break-after:auto}
-  .ptbl{width:100%;border-collapse:collapse;font-size:9pt}
+  .ptbl{width:100%;border-collapse:collapse;font-size:9pt;table-layout:fixed;word-break:break-word}
+.ptbl td.n,.ptbl th:last-child{white-space:nowrap}
   .ptbl th,.ptbl td{border:.5pt solid #999;padding:3pt 4pt;text-align:left;vertical-align:top}
   .ptbl th{background:#eee;font-size:8pt;text-transform:uppercase;letter-spacing:.05em}
   .ptbl td.n{text-align:right;font-family:var(--mono)}
@@ -475,6 +476,31 @@ const yearItems = ()=> S.items.filter(i=>{
   return p && !p.storno && !p.geloescht;
 });
 const PAPIERKORB_TAGE = 30;
+/* Belegnummern müssen je Jahr eindeutig sein */
+function doppelteNummern(){
+  const zaehler = {}, doppelt = [];
+  S.purchases.forEach(p=>{
+    const k = p.year+"#"+p.beleg;
+    zaehler[k] = (zaehler[k]||0)+1;
+  });
+  S.purchases.forEach(p=>{ if(zaehler[p.year+"#"+p.beleg] > 1) doppelt.push(p); });
+  return doppelt;
+}
+async function nummernReparieren(){
+  const jahre = [...new Set(S.purchases.map(p=>p.year))];
+  let geaendert = 0;
+  for(const y of jahre){
+    const liste = S.purchases.filter(p=>p.year===y)
+      .sort((a,b)=> (a.datum||"").localeCompare(b.datum||"") || (a.created||0)-(b.created||0));
+    let nr = 0;
+    for(const p of liste){
+      nr++;
+      if(p.beleg !== nr){ p.nummerAlt = p.beleg; p.beleg = nr; await put("purchases", p); geaendert++; }
+    }
+  }
+  await reload();
+  return geaendert;
+}
 const imPapierkorb = ()=> S.purchases.filter(p=>p.geloescht);
 /* Positionen, die zu lange liegen */
 function langsteher(){
@@ -593,6 +619,9 @@ function renderHome(){
     A.push(["var(--signal)", `${ls.length} Positionen liegen über ein Jahr`, `Gebundener Einkaufswert ${eur(ls.reduce((a,i)=>a+num(i.ek),0))}`, "langsteher"]);
   if(st.lager.length)
     A.push(["var(--rule)", "Verkaufsrunde erfassen", `${st.lager.length} Positionen auf Lager · Stream, Markt oder Auktion in einem Rutsch`, "runde"]);
+  const dn = doppelteNummern();
+  if(dn.length) A.unshift(["var(--stamp)", `${dn.length} Belege mit doppelter Nummer`,
+    "Belegnummern müssen eindeutig sein — hier antippen und neu durchnummerieren", "nummern"]);
   const pk = imPapierkorb();
   if(pk.length) A.push(["var(--ink-3)", `${pk.length} im Papierkorb`, "Rückholbar, bis die Frist abläuft", "papierkorb"]);
   document.getElementById("homeActions").innerHTML = `<div class="card" style="margin-bottom:16px">` +
@@ -739,6 +768,7 @@ function renderOut(){
   document.getElementById("dataRows").innerHTML = `
     <button class="linkrow" data-act="backup"><div><div class="l">Sicherung erstellen</div><div class="d">${lb?"Zuletzt "+new Date(lb).toLocaleDateString("de-DE"):"Noch nie gesichert"} · Datei mit allen Bildern</div></div><div class="chev">→</div></button>
     <button class="linkrow" data-act="restore"><div><div class="l">Sicherung einlesen</div><div class="d">Ergänzt fehlende Datensätze, überschreibt nichts</div></div><div class="chev">→</div></button>
+    <button class="linkrow" data-act="nummern"><div><div class="l">Belegnummern prüfen</div><div class="d">${doppelteNummern().length ? doppelteNummern().length+" doppelt — sollte repariert werden" : "Alle eindeutig"}</div></div><div class="chev">→</div></button>
     <button class="linkrow" data-act="papierkorb"><div><div class="l">Papierkorb</div><div class="d">${imPapierkorb().length} Belege · ${PAPIERKORB_TAGE} Tage rückholbar</div></div><div class="chev">→</div></button>
     <button class="linkrow" data-act="csv"><div><div class="l">CSV für den Steuerberater</div><div class="d">Ankäufe, Positionen und Kosten als Tabelle</div></div><div class="chev">→</div></button>`;
   const m = S.meta;
@@ -1428,6 +1458,31 @@ function openStamm(){
   S._logoRefresh = zeigeLogo;
 }
 
+/* ---------------- Belegnummern reparieren ---------------- */
+function openNummern(){
+  const dn = doppelteNummern();
+  const jahre = [...new Set(S.purchases.map(p=>p.year))].sort();
+  openSheet2("Belegnummern", `
+    <div class="banner ${dn.length?"bad":"info"}">
+      ${dn.length ? `<b>${dn.length} Belege teilen sich eine Nummer.</b> Das passiert, wenn eine Sicherung in ein Buch eingelesen wird, in dem schon Belege stehen.`
+                  : `<b>Alles eindeutig.</b> Jede Belegnummer kommt genau einmal vor.`}
+    </div>
+    ${dn.length ? `<div class="card" style="margin-bottom:14px">${dn.sort((a,b)=>a.beleg-b.beleg).map(p=>`
+      <div class="act"><div class="dot" style="background:var(--stamp)"></div>
+      <div class="ab"><b>${String(p.beleg).padStart(4,"0")} · ${esc(p.bez||"Ankauf")}</b>
+      <span>${dstr(p.datum)} · ${eur(p.betrag)}</span></div></div>`).join("")}</div>` : ""}
+    <p class="hint" style="margin-bottom:14px">Beim Reparieren werden alle Belege je Geschäftsjahr nach Kaufdatum sortiert und lückenlos von 0001 an neu durchnummeriert. Betroffene Jahre: ${jahre.join(", ")||"—"}.<br><br>
+    Wichtig: Wenn du Belege schon ausgedruckt oder abgegeben hast, ändern sich deren Nummern. Reparier lieber jetzt als nach dem Jahresabschluss.</p>
+    <button class="btn ${dn.length?"":"ghost"}" id="nr_fix">Neu durchnummerieren</button>
+    <button class="btn ghost" id="nr_close">Schließen</button>`, null);
+  document.getElementById("nr_fix").onclick = async ()=>{
+    if(!confirm("Alle Belege je Jahr nach Datum neu durchnummerieren?")) return;
+    const n = await nummernReparieren();
+    closeSheet2(); toast(n ? `${n} Belege neu nummeriert` : "Nichts zu ändern");
+  };
+  document.getElementById("nr_close").onclick = closeSheet2;
+}
+
 /* ---------------- Papierkorb ---------------- */
 async function papierkorbAufraeumen(){
   const grenze = Date.now() - PAPIERKORB_TAGE*864e5;
@@ -1511,13 +1566,26 @@ async function restore(file){
   try{
     const d = JSON.parse(await file.text());
     if(d.app!=="ankaufsbuch") throw 0;
-    let n = 0;
-    for(const p of d.purchases||[]) if(!S.purchases.some(x=>x.id===p.id)){ await put("purchases",p); n++; }
+    let n = 0, umnummeriert = 0;
+    const belegt = new Set(S.purchases.map(p=>p.year+"#"+p.beleg));
+    const hoechste = {};
+    S.purchases.forEach(p=>{ hoechste[p.year] = Math.max(hoechste[p.year]||0, p.beleg||0); });
+    for(const p of d.purchases||[]) if(!S.purchases.some(x=>x.id===p.id)){
+      const key = p.year+"#"+p.beleg;
+      if(belegt.has(key)){
+        p.beleg = (hoechste[p.year]||0) + 1;
+        p.nummerAlt = key.split("#")[1];
+        umnummeriert++;
+      }
+      hoechste[p.year] = Math.max(hoechste[p.year]||0, p.beleg||0);
+      belegt.add(p.year+"#"+p.beleg);
+      await put("purchases",p); n++;
+    }
     for(const i of d.items||[]) if(!S.items.some(x=>x.id===i.id)) await put("items",i);
     for(const e of d.expenses||[]) if(!S.expenses.some(x=>x.id===e.id)) await put("expenses",e);
     for(const im of d.images||[]) if(!await getOne("images",im.id)) await put("images",{id:im.id, purchaseId:im.purchaseId, blob:b64ToBlob(im.data)});
     if(d.meta && !S.meta.name){ S.meta = {...d.meta, lastBackup:S.meta.lastBackup}; await put("meta",{id:"stamm",...S.meta}); }
-    await reload(); toast(`${n} Belege ergänzt`);
+    await reload(); toast(umnummeriert ? `${n} Belege ergänzt · ${umnummeriert} neu nummeriert` : `${n} Belege ergänzt`);
   }catch(e){ toast("Datei nicht lesbar"); }
 }
 function csv(){
@@ -1548,14 +1616,15 @@ function csv(){
 function phead(t,s){
   const m = S.meta;
   const lg = logoJetzt();
-  const logo = lg ? `<img src="${lg}" alt="" style="max-height:16mm;max-width:52mm;object-fit:contain;float:right;margin-left:6mm">` : "";
+  const logo = lg ? `<img src="${lg}" alt="" style="height:18mm;width:18mm;object-fit:contain;float:right;margin-left:6mm">` : "";
   return `<div class="phd">${logo}<h1>${t}</h1><div class="sub">${esc(m.name||"—")}${m.firma?" · "+esc(m.firma):""}${m.stnr?" · St.-Nr. "+esc(m.stnr):""}<br>Geschäftsjahr ${S.year}${s?" · "+s:""} · erstellt am ${new Date().toLocaleDateString("de-DE")}${m.marke?"<br>"+esc(m.marke):""}</div><div style="clear:both"></div></div>`;
 }
 function pJournal(){
   const ps = S.purchases.filter(p=>inYear(p,S.year)).sort((a,b)=>a.beleg-b.beleg);
   const sum = ps.filter(p=>!p.storno).reduce((a,p)=>a+num(p.betrag),0);
   return `<div class="page">${phead("Ankaufsjournal","Wareneinkauf von Privat")}
-  <table class="ptbl"><thead><tr><th>Beleg</th><th>Datum</th><th>Gegenstand</th><th>Verkäufer</th><th>Zahlart</th><th>Nachweis</th><th style="text-align:right">Betrag</th></tr></thead><tbody>
+  <table class="ptbl"><colgroup><col style="width:13mm"><col style="width:20mm"><col><col style="width:42mm"><col style="width:20mm"><col style="width:26mm"><col style="width:20mm"></colgroup>
+  <thead><tr><th>Beleg</th><th>Datum</th><th>Gegenstand</th><th>Verkäufer</th><th>Zahlart</th><th>Nachweis</th><th style="text-align:right">Betrag</th></tr></thead><tbody>
   ${ps.map(p=>`<tr${p.storno?' style="color:#888"':''}><td class="mono">${String(p.beleg).padStart(4,"0")}</td><td>${dstr(p.datum)}</td>
     <td>${esc(p.bez||"—")}${p.storno?" <b>(storniert)</b>":""}</td>
     <td>${esc([p.vName,p.vPlz].filter(Boolean).join(", ")||p.vNick||"—")}</td>
@@ -1684,11 +1753,13 @@ const KINDNAME = {journal:"Ankaufsjournal", belege:"Eigenbelege", marge:"Marge-n
 
 const REPORT_CSS = `
 *{box-sizing:border-box}
-body{margin:0;padding:16px;background:#f2f2ef;color:#000;
+body{margin:0;padding:10px;background:#e9e8e3;color:#000;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:11pt}
-.page{background:#fff;max-width:196mm;margin:0 auto 16px;padding:14mm;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.page{background:#fff;width:210mm;min-height:290mm;margin:0 auto 12px;padding:15mm;
+  box-shadow:0 1px 5px rgba(0,0,0,.2);box-sizing:border-box}
 .mono,.n{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
-.ptbl{width:100%;border-collapse:collapse;font-size:9pt}
+.ptbl{width:100%;border-collapse:collapse;font-size:9pt;table-layout:fixed;word-break:break-word}
+.ptbl td.n,.ptbl th:last-child{white-space:nowrap}
 .ptbl th,.ptbl td{border:.5pt solid #999;padding:3pt 4pt;text-align:left;vertical-align:top}
 .ptbl th{background:#eee;font-size:8pt;text-transform:uppercase;letter-spacing:.05em}
 .ptbl td.n{text-align:right}
@@ -1781,9 +1852,7 @@ async function doPrint(kind){
       <button class="btn" id="pgPrev">Vorschau ansehen</button>
       <button class="btn ghost" id="pgSave">Als Datei sichern</button>
       <button class="btn ghost" id="pgPrint">Drucken</button>
-      <p class="hint" style="margin-top:14px">${istApp()
-        ? "Gesicherte Dateien landen in der Dateien-App unter Downloads. Von dort: antippen, Teilen, Drucken, im Druckdialog nochmal Teilen, In Dateien sichern — das ist dein PDF."
-        : "Beim Drucken im Dialog „Als PDF sichern“ wählen."}</p>
+      <p class="hint" style="margin-top:14px">Drucken öffnet den Systemdialog — dort „Als PDF sichern“ wählen. Klappt das nicht, sichert die App die Datei stattdessen in Downloads; von dort: antippen, Teilen, Drucken.</p>
       <div id="pgFrame" style="margin-top:14px"></div>`;
     document.getElementById("pgSave").onclick = ()=>{
       download(r.name, new Blob([r.doc],{type:"text/html;charset=utf-8"})); toast("Datei gesichert");
@@ -1791,21 +1860,26 @@ async function doPrint(kind){
     document.getElementById("pgPrev").onclick = ()=>{
       const f = document.getElementById("pgFrame");
       if(f.firstChild){ f.innerHTML = ""; document.getElementById("pgPrev").textContent = "Vorschau ansehen"; return; }
+      const SEITE = 820;                       // Layoutbreite einer A4-Seite in Pixeln
+      const cw = f.clientWidth || 340;
+      const sc = Math.min(1, cw/SEITE);
+      const hoehe = Math.round(window.innerHeight*0.66/sc);
+      const box = document.createElement("div");
+      box.style.cssText = `width:100%;height:${Math.round(hoehe*sc)}px;overflow:hidden;border:1px solid var(--rule);border-radius:8px;background:#fff`;
       const ifr = document.createElement("iframe");
-      ifr.style.cssText = "width:100%;height:72vh;border:1px solid var(--rule);border-radius:8px;background:#fff";
+      ifr.style.cssText = `width:${SEITE}px;height:${hoehe}px;border:0;background:#fff;transform:scale(${sc});transform-origin:top left`;
       ifr.srcdoc = r.doc;
-      f.appendChild(ifr);
+      box.appendChild(ifr);
+      f.appendChild(box);
       document.getElementById("pgPrev").textContent = "Vorschau schließen";
       setTimeout(()=>ifr.scrollIntoView({behavior:"smooth",block:"start"}), 80);
     };
     document.getElementById("pgPrint").onclick = ()=>{
-      if(istApp()){
-        download(r.name, new Blob([r.doc],{type:"text/html;charset=utf-8"}));
-        toast("Datei gesichert — von dort drucken");
-        return;
-      }
       document.getElementById("print").innerHTML = r.inhalt;
-      setTimeout(()=>window.print(), 250);
+      setTimeout(()=>{
+        try{ window.print(); }
+        catch(e){ download(r.name, new Blob([r.doc],{type:"text/html;charset=utf-8"})); toast("Kein Druckdialog — als Datei gesichert"); }
+      }, 300);
     };
   }catch(err){
     document.getElementById("sh2Body").innerHTML =
@@ -1850,6 +1924,7 @@ document.addEventListener("click", e=>{
     if(a==="backup") return backup();
     if(a==="runde") return openRunde(null);
     if(a==="papierkorb") return openPapierkorb();
+    if(a==="nummern") return openNummern();
     if(a==="langsteher"){ S.stockFilterWunsch="lager"; show("stock"); return; }
     if(a==="schwach"){ S.buyMode="liste"; show("buy"); return; }
   }
@@ -1864,6 +1939,7 @@ document.addEventListener("click", e=>{
     if(a.dataset.act==="csv") return csv();
     if(a.dataset.act==="stamm") return openStamm();
     if(a.dataset.act==="papierkorb") return openPapierkorb();
+    if(a.dataset.act==="nummern") return openNummern();
   }
   const add = e.target.closest("[data-addshot]");
   if(add){ const fp = document.getElementById("filePick"); fp.dataset.kind = add.dataset.addshot; fp.value=""; fp.click(); return; }
