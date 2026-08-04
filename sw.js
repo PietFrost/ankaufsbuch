@@ -1,7 +1,7 @@
 /* Ankaufsbuch — Offline-Cache.
-   Hält App-Dateien lokal, damit die App ohne Netz startet.
-   Deine Daten liegen NICHT hier, sondern in IndexedDB. */
-const CACHE = "ankaufsbuch-v7";
+   Programmdateien werden zuerst frisch geholt und nur bei fehlendem Netz
+   aus dem Cache bedient. Deine Daten liegen NICHT hier, sondern in IndexedDB. */
+const CACHE = "ankaufsbuch-v8";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -16,13 +16,38 @@ self.addEventListener("activate", e => {
   );
 });
 
+self.addEventListener("message", e => {
+  if (e.data === "update") self.registration.update();
+});
+
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
+  const req = e.request;
+  if (req.method !== "GET") return;
+
+  const url = new URL(req.url);
+  const istProgramm = req.mode === "navigate"
+    || url.pathname.endsWith("/")
+    || url.pathname.endsWith("index.html")
+    || url.pathname.endsWith("manifest.webmanifest");
+
+  if (istProgramm) {
+    // Erst das Netz fragen, Cache nur als Rückfallebene
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match(req).then(hit => hit || caches.match("./index.html")))
+    );
+    return;
+  }
+
+  // Icons und Sonstiges: Cache zuerst, das ändert sich selten
   e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+    caches.match(req).then(hit => hit || fetch(req).then(res => {
       const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+      caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
       return res;
-    }).catch(() => caches.match("./index.html")))
+    }))
   );
 });
