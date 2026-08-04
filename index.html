@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ankaufsbuch">
+<meta name="theme-color" content="#F4F4F1">
+<title>Ankaufsbuch</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<style>
+:root{
+  --paper:#F4F4F1; --card:#FFFFFF; --ink:#1B2430; --ink-2:#5A6472; --ink-3:#8B94A0;
+  --rule:#DCD9D0; --rule-2:#EDEBE5;
+  --stamp:#C42B1C; --stamp-soft:#FBEAE7;
+  --signal:#E0A215; --signal-soft:#FDF3DC;
+  --ok:#2F6B4F; --ok-soft:#E6F0EA;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--sans);
+  font-size:16px; line-height:1.45; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(76px + var(--safe-b));
+}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{
+  width:100%; background:var(--card); border:1px solid var(--rule); border-radius:6px;
+  padding:11px 12px; appearance:none; -webkit-appearance:none;
+}
+input:focus,select,textarea:focus,button:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235A6472' stroke-width='1.8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:12px;padding-right:34px}
+textarea{min-height:70px;resize:vertical}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- Kopf ---------- */
+header{
+  position:sticky;top:0;z-index:40;background:var(--paper);
+  border-bottom:1px solid var(--rule); padding:10px 16px 9px;
+  padding-top:calc(10px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;gap:12px;
+}
+.brand{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;flex:1;line-height:1.2}
+.brand small{display:block;font-size:10px;letter-spacing:.1em;color:var(--ink-3);font-weight:600}
+#yearSel{width:auto;padding:6px 30px 6px 10px;font-family:var(--mono);font-weight:600;font-size:14px;border-radius:5px}
+
+/* ---------- Layout ---------- */
+main{padding:16px 16px 8px;max-width:720px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin:26px 0 10px;font-weight:700}
+h2:first-child{margin-top:4px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.card + .card{margin-top:10px}
+.pad{padding:14px}
+.row{display:flex;gap:10px}
+.row > *{flex:1;min-width:0}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:700;margin-bottom:5px}
+.hint{font-size:12.5px;color:var(--ink-3);line-height:1.4;margin-top:5px}
+
+/* ---------- Kennzahlen ---------- */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.kpi{background:var(--card);padding:13px 14px}
+.kpi .lab{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+.kpi .val{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:11.5px;color:var(--ink-3)}
+.kpi.wide{grid-column:1/-1}
+.kpi.accent .val{color:var(--stamp)}
+
+/* ---------- Belegzeile ---------- */
+.beleg{display:flex;gap:0;border-bottom:1px solid var(--rule-2);background:var(--card);width:100%;text-align:left;border-left:0;border-right:0;border-top:0;padding:0;cursor:pointer}
+.beleg:last-child{border-bottom:0}
+.stamp{
+  flex:0 0 74px;background:var(--stamp-soft);border-right:1px solid var(--rule-2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;
+}
+.stamp b{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--stamp);letter-spacing:-.03em}
+.stamp span{font-family:var(--mono);font-size:9px;color:var(--stamp);opacity:.75;letter-spacing:.06em}
+.beleg .body{flex:1;min-width:0;padding:11px 13px}
+.beleg .t{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beleg .m{font-size:12.5px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beleg .amt{flex:0 0 auto;padding:11px 13px 11px 4px;text-align:right;font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.beleg.storno{opacity:.5}
+.beleg.storno .t{text-decoration:line-through}
+
+/* ---------- Belegqualität ---------- */
+.qual{display:flex;gap:2px;margin-top:6px;width:64px}
+.qual i{height:3px;flex:1;background:var(--rule);border-radius:2px}
+.qual.q1 i:nth-child(1){background:var(--stamp)}
+.qual.q2 i:nth-child(-n+2){background:var(--signal)}
+.qual.q3 i{background:var(--ok)}
+
+.tag{display:inline-block;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:4px;background:var(--rule-2);color:var(--ink-2)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.warn{background:var(--signal-soft);color:#8A6100}
+.tag.bad{background:var(--stamp-soft);color:var(--stamp)}
+
+/* ---------- Buttons ---------- */
+button{border:none;background:none;padding:0;cursor:pointer}
+.btn{display:block;width:100%;background:var(--ink);color:#fff;border-radius:8px;padding:13px;font-weight:650;font-size:15px;text-align:center}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--rule)}
+.btn.danger{background:var(--card);color:var(--stamp);border:1px solid var(--stamp)}
+.btn + .btn{margin-top:9px}
+.btn:active{opacity:.75}
+.btn[disabled]{opacity:.4}
+.linkrow{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px;border-bottom:1px solid var(--rule-2);background:var(--card);text-align:left}
+.linkrow:last-child{border-bottom:0}
+.linkrow .l{font-weight:600;font-size:15px}
+.linkrow .d{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.linkrow .chev{color:var(--ink-3);font-family:var(--mono)}
+
+/* ---------- Tableiste ---------- */
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(244,244,241,.94);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);
+  border-top:1px solid var(--rule);display:flex;padding-bottom:var(--safe-b);
+}
+nav button{flex:1;padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-3);font-size:10px;letter-spacing:.05em;font-weight:650;text-transform:uppercase}
+nav button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--ink)}
+.fab{position:fixed;right:16px;bottom:calc(74px + var(--safe-b));z-index:45;width:56px;height:56px;border-radius:28px;background:var(--stamp);color:#fff;font-size:30px;line-height:52px;text-align:center;box-shadow:0 4px 16px rgba(27,36,48,.24)}
+
+/* ---------- Sheet ---------- */
+.sheet{position:fixed;inset:0;z-index:100;background:var(--paper);display:none;flex-direction:column}
+.sheet.on{display:flex}
+.sheet .top{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.sheet .top .ttl{flex:1;font-size:13px;letter-spacing:.13em;text-transform:uppercase;font-weight:700}
+.sheet .top button{font-size:15px;font-weight:600;color:var(--ink-2)}
+.sheet .top button.prim{color:var(--stamp);font-weight:700}
+.sheet .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:calc(40px + var(--safe-b))}
+
+/* ---------- Bilder ---------- */
+.shots{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.shot{position:relative;border:1px solid var(--rule);border-radius:8px;background:var(--card);overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot .kindlab{position:absolute;left:0;right:0;bottom:0;background:rgba(27,36,48,.82);color:#fff;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding:3px 6px;text-align:center}
+.shot .del{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:12px;background:rgba(27,36,48,.82);color:#fff;font-size:15px;line-height:24px;text-align:center}
+.shot.add{border-style:dashed;flex-direction:column;gap:4px;color:var(--ink-3);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;text-align:center;padding:8px}
+.shot.add span:first-child{font-size:24px;line-height:1}
+
+/* ---------- Positionen ---------- */
+.pos{border:1px solid var(--rule);border-radius:8px;padding:11px;margin-bottom:9px;background:var(--card)}
+.pos .hd{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.pos .hd .ix{font-family:var(--mono);font-size:11px;color:var(--ink-3);font-weight:700;flex:0 0 auto}
+.pos .hd .rm{color:var(--stamp);font-size:12px;font-weight:700;flex:0 0 auto}
+.pos .hd input{flex:1}
+
+.banner{border-radius:9px;padding:12px 13px;font-size:13.5px;line-height:1.45;margin-bottom:12px;border:1px solid}
+.banner.warn{background:var(--signal-soft);border-color:#EBD9A6;color:#6E4E00}
+.banner.bad{background:var(--stamp-soft);border-color:#F0C8C2;color:#8B2015}
+.banner.info{background:var(--card);border-color:var(--rule);color:var(--ink-2)}
+.banner b{font-weight:700}
+.empty{text-align:center;padding:34px 18px;color:var(--ink-3);font-size:14px;line-height:1.5}
+.empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}
+/* ---------- Unterschrift ---------- */
+.sig{position:relative;border:1px solid var(--rule);border-radius:8px;background:var(--card);height:130px;overflow:hidden}
+.sig canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.sig .base{position:absolute;left:14px;right:14px;bottom:30px;border-bottom:1px dashed var(--rule);pointer-events:none}
+.sig .ph{position:absolute;left:16px;bottom:9px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700;pointer-events:none}
+.sig .clr{position:absolute;top:7px;right:8px;font-size:11.5px;font-weight:700;color:var(--stamp);background:var(--card);border:1px solid var(--rule);border-radius:5px;padding:4px 9px}
+#sheet2{z-index:120}
+.hdbtn{width:34px;height:34px;border-radius:7px;border:1px solid var(--rule);background:var(--card);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.hdbtn svg{width:18px;height:18px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hdbtn.alert{border-color:var(--stamp);background:var(--stamp-soft)}
+.hdbtn.alert svg{stroke:var(--stamp)}
+.ebprev{width:100%;border:1px solid var(--rule);border-radius:8px;display:block}
+/* ---------- Verkaufsrunde ---------- */
+.rrow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--rule-2);background:var(--card)}
+.rrow:last-child{border-bottom:0}
+.rrow input[type=checkbox]{width:22px;height:22px;flex:0 0 auto;margin:0;accent-color:var(--stamp)}
+.rrow .rb{flex:1;min-width:0}
+.rrow .rb b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .rb span{font-size:11.5px;color:var(--ink-3)}
+.rrow input[type=text]{flex:0 0 92px;padding:8px 9px;text-align:right}
+.rrow.off{opacity:.45}
+.rsum{position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--rule);padding:11px 2px;margin-top:4px}
+.act{display:flex;align-items:center;gap:11px;width:100%;padding:13px;border-bottom:1px solid var(--rule-2);background:var(--card);text-align:left}
+.act:last-child{border-bottom:0}
+.act .dot{width:9px;height:9px;border-radius:5px;flex:0 0 auto}
+.act .ab{flex:1;min-width:0}
+.act .ab b{display:block;font-size:14.5px;font-weight:600}
+.act .ab span{font-size:12px;color:var(--ink-3)}
+.act .chev{color:var(--ink-3);font-family:var(--mono)}
+details.fold{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+details.fold summary{padding:13px;font-size:13.5px;font-weight:600;cursor:pointer;list-style:none}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold summary::after{content:"▾";float:right;color:var(--ink-3)}
+details.fold[open] summary{border-bottom:1px solid var(--rule-2)}
+details.fold .fb{padding:13px}
+/* ---------- Umschalter, Galerie, Betrachter ---------- */
+.seg{display:flex;gap:2px;background:var(--rule-2);border:1px solid var(--rule);border-radius:8px;padding:2px;margin-bottom:12px}
+.seg button{flex:1;padding:8px;border-radius:6px;font-size:13.5px;font-weight:650;color:var(--ink-2)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(27,36,48,.1)}
+.gcard{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.ghead{display:flex;align-items:center;gap:11px;padding:11px 13px;border-bottom:1px solid var(--rule-2)}
+.ghead .gn{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--stamp);flex:0 0 auto}
+.ghead .gt{flex:1;min-width:0}
+.ghead .gt b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghead .gt span{font-size:12px;color:var(--ink-3)}
+.ghead .ga{font-family:var(--mono);font-weight:600;font-size:14px}
+.gstrip{display:flex;gap:7px;padding:11px 13px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.gstrip .gs{flex:0 0 88px;height:88px;border-radius:7px;overflow:hidden;border:1px solid var(--rule);position:relative;background:var(--rule-2)}
+.gstrip .gs img{width:100%;height:100%;object-fit:cover;display:block}
+.gstrip .gs em{position:absolute;left:0;right:0;bottom:0;background:rgba(27,36,48,.8);color:#fff;font-size:8.5px;font-style:normal;letter-spacing:.05em;text-transform:uppercase;font-weight:700;padding:2px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gnone{padding:11px 13px;font-size:12.5px;color:var(--ink-3)}
+.gpos{padding:0 13px 11px;font-size:12.5px;color:var(--ink-2)}
+.gpos div{padding:3px 0;border-top:1px solid var(--rule-2);display:flex;justify-content:space-between;gap:10px}
+#viewer{position:fixed;inset:0;z-index:300;background:rgba(20,24,30,.97);display:none;flex-direction:column}
+#viewer.on{display:flex}
+#viewer .vtop{display:flex;align-items:center;gap:12px;padding:14px;padding-top:calc(14px + env(safe-area-inset-top,0px));color:#fff}
+#viewer .vtop .vt{flex:1;font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+#viewer .vtop button{color:#fff;font-size:16px;font-weight:600}
+#viewer .vimg{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 12px calc(20px + var(--safe-b))}
+#viewer img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.prog{height:6px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin-top:12px}
+.prog i{display:block;height:100%;background:var(--stamp);width:0;transition:width .15s}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-b));z-index:200;background:var(--ink);color:#fff;padding:11px 17px;border-radius:22px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.dl{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--rule-2);font-size:14px}
+.dl:last-child{border-bottom:0}
+.dl dt{color:var(--ink-2)}
+.dl dd{margin:0;font-family:var(--mono);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- Druck ---------- */
+#print{display:none}
+@media print{
+  body{background:#fff;padding:0}
+  header,nav,main,.fab,.sheet,.toast{display:none !important}
+  #print{display:block;font-family:var(--sans);color:#000;font-size:11pt}
+  .page{page-break-after:always;padding:0 0 8mm}
+  .page:last-child{page-break-after:auto}
+  .ptbl{width:100%;border-collapse:collapse;font-size:9pt}
+  .ptbl th,.ptbl td{border:.5pt solid #999;padding:3pt 4pt;text-align:left;vertical-align:top}
+  .ptbl th{background:#eee;font-size:8pt;text-transform:uppercase;letter-spacing:.05em}
+  .ptbl td.n{text-align:right;font-family:var(--mono)}
+  .phd{border-bottom:1.5pt solid #000;padding-bottom:4mm;margin-bottom:5mm}
+  .phd h1{font-size:15pt;margin:0 0 1mm}
+  .phd .sub{font-size:9pt;color:#444}
+  .ebox{border:1pt solid #000;padding:5mm;margin-bottom:5mm}
+  .egrid{display:grid;grid-template-columns:38mm 1fr;gap:1.5mm 4mm;font-size:10pt}
+  .egrid .k{color:#444;font-size:8.5pt;text-transform:uppercase;letter-spacing:.05em;padding-top:.6mm}
+  .esig{margin-top:12mm;display:grid;grid-template-columns:1fr 1fr;gap:10mm}
+  .esig div{border-top:.5pt solid #000;padding-top:1.5mm;font-size:8pt;color:#444}
+  .pimgs{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-top:4mm}
+  .pimgs figure{margin:0}
+  .pimgs img{width:100%;max-height:75mm;object-fit:contain;border:.5pt solid #999}
+  .pimgs figcaption{font-size:7.5pt;color:#444;text-transform:uppercase;letter-spacing:.05em;padding-top:1mm}
+  .pnote{font-size:8pt;color:#444;margin-top:3mm;line-height:1.4}
+  .ptot{margin-top:4mm;font-size:10pt;font-weight:700;text-align:right;font-family:var(--mono)}
+  h3.psec{font-size:11pt;margin:6mm 0 2mm;border-bottom:.5pt solid #000;padding-bottom:1mm}
+  .ptext{font-size:9.5pt;line-height:1.5}
+  .ptext li{margin-bottom:1.5mm}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Ankaufsbuch<small id="brandSub">Privatankauf · Eigenbeleg</small></div>
+  <button class="hdbtn" id="storeBtn" aria-label="Speicherstatus" title="Speicherstatus">
+    <svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-6h8v6"/></svg>
+  </button>
+  <select id="yearSel" aria-label="Geschäftsjahr"></select>
+</header>
+
+<main>
+  <!-- ÜBERSICHT -->
+  <section class="view on" id="v-home">
+    <div id="homeBanners"></div>
+    <div id="homeActions"></div>
+    <div class="kpis" id="homeKpis"></div>
+    <h2>Zuletzt erfasst</h2>
+    <div class="card" id="homeRecent"></div>
+    <h2>Meldegrenzen der Plattformen</h2>
+    <details class="fold" id="pstgFold"><summary id="pstgSum">Plattformen</summary><div class="fb" id="pstg"></div></details>
+  </section>
+
+  <!-- ANKÄUFE -->
+  <section class="view" id="v-buy">
+    <div class="seg" id="buyMode">
+      <button data-mode="liste" class="on">Liste</button>
+      <button data-mode="galerie">Galerie</button>
+    </div>
+    <div class="card" id="buyList"></div>
+    <div id="buyGallery"></div>
+  </section>
+
+  <!-- LAGER -->
+  <section class="view" id="v-stock">
+    <button class="btn" id="runBtn" style="margin-bottom:14px">Verkaufsrunde erfassen</button>
+    <div class="field"><select id="stockFilter">
+      <option value="lager">Auf Lager</option>
+      <option value="verkauft">Verkauft</option>
+      <option value="alle">Alle Positionen</option>
+    </select></div>
+    <div class="card" id="stockList"></div>
+  </section>
+
+  <!-- KOSTEN -->
+  <section class="view" id="v-cost">
+    <button class="btn" id="addCost">Kosten erfassen</button>
+    <h2>Erfasste Kosten</h2>
+    <div class="card" id="costList"></div>
+  </section>
+
+  <!-- ABSCHLUSS -->
+  <section class="view" id="v-out">
+    <div id="outBanner"></div>
+    <h2>Drucken &amp; als PDF sichern</h2>
+    <div class="card" id="printRows"></div>
+    <h2>Daten</h2>
+    <div class="card" id="dataRows"></div>
+    <h2>Stammdaten</h2>
+    <div class="card" id="settingsRows"></div>
+  <p class="hint" style="margin:14px 2px 0">Jeder Bericht wird als Datei gesichert und landet in der Dateien-App unter Downloads. Von dort: Teilen → Drucken → nochmal Teilen → In Dateien sichern, dann hast du das PDF.</p>
+  </section>
+</main>
+
+<button class="fab" id="fab" aria-label="Ankauf erfassen">+</button>
+
+<nav>
+  <button data-v="home" class="on"><svg viewBox="0 0 24 24"><path d="M4 19V9l8-5 8 5v10"/><path d="M9 19v-6h6v6"/></svg>Übersicht</button>
+  <button data-v="buy"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Ankäufe</button>
+  <button data-v="stock"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Lager</button>
+  <button data-v="cost"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 14.5h5"/></svg>Kosten</button>
+  <button data-v="out"><svg viewBox="0 0 24 24"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v5H7z"/></svg>Abschluss</button>
+</nav>
+
+<!-- Sheets -->
+<div class="sheet" id="sheet">
+  <div class="top">
+    <button id="shCancel">Abbrechen</button>
+    <div class="ttl" id="shTitle"></div>
+    <button class="prim" id="shSave">Sichern</button>
+  </div>
+  <div class="scroll" id="shBody"></div>
+</div>
+
+<div class="sheet" id="sheet2">
+  <div class="top">
+    <button id="sh2Cancel">Abbrechen</button>
+    <div class="ttl" id="sh2Title"></div>
+    <button class="prim" id="sh2Save">Fertig</button>
+  </div>
+  <div class="scroll" id="sh2Body"></div>
+</div>
+
+<div id="viewer">
+  <div class="vtop"><div class="vt" id="vTitle"></div><button id="vClose">Schließen</button></div>
+  <div class="vimg"><img id="vImg" alt=""></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="filePick" accept="image/*" style="display:none">
+<input type="file" id="jsonPick" accept="application/json,.json" style="display:none">
+<div id="print"></div>
+
+<script>
+"use strict";
+/* =======================================================================
+   Ankaufsbuch — Privatankäufe belegen, Bestand führen, Jahr abschließen.
+   Alles bleibt auf diesem Gerät (IndexedDB). Kein Server, kein Konto.
+   ======================================================================= */
+
+const KAT = {
+  fahrt:"Fahrtkosten", verpackung:"Verpackungsmaterial", porto:"Porto (allgemein)",
+  gebuehr:"Plattformgebühren", technik:"Technik / Zubehör", buero:"Bürobedarf", sonst:"Sonstiges"
+};
+const ZAHLART = {ueberweisung:"Überweisung", paypal:"PayPal", bar:"Bar", sonst:"Sonstiges"};
+const PLATTFORM = ["Kleinanzeigen","eBay","Flohmarkt","Privat direkt","Haushaltsauflösung","Sonstige"];
+const VK_PLATTFORM = ["Whatnot","eBay","Kleinanzeigen","Vinted","Direkt","Sonstige"];
+const SHOT = {ware:"Foto der Ware", anzeige:"Anzeige", chat:"Chatverlauf", zahlung:"Zahlungsnachweis", eigenbeleg:"Eigenbeleg unterschrieben"};
+const KM_SATZ = 0.30;
+/* Voreingestelltes Logo — in den Stammdaten austauschbar */
+const LOGO_STANDARD = "data:image/png;base64,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";
+const logoJetzt = ()=> (S.meta.logo === null ? null : (S.meta.logo || LOGO_STANDARD));
+
+/* ---------------- Speicher ---------------- */
+let db = null, memMode = false;
+const mem = {purchases:[],items:[],expenses:[],images:[],meta:[],events:[]};
+
+function openDB(){
+  return new Promise(res=>{
+    let req;
+    try{ req = indexedDB.open("ankaufsbuch",2); }catch(e){ memMode=true; return res(); }
+    req.onupgradeneeded = ()=>{
+      const d = req.result;
+      ["purchases","items","expenses","images","meta","events"].forEach(n=>{
+        if(!d.objectStoreNames.contains(n)) d.createObjectStore(n,{keyPath:"id"});
+      });
+    };
+    req.onsuccess = ()=>{ db = req.result; res(); };
+    req.onerror = ()=>{ memMode = true; res(); };
+    req.onblocked = ()=>{ memMode = true; res(); };
+    setTimeout(()=>{ if(!db && !memMode){ memMode=true; res(); } }, 2500);
+  });
+}
+function tx(store,mode){ return db.transaction(store,mode).objectStore(store); }
+function all(store){
+  if(memMode || !db) return Promise.resolve(mem[store].slice());
+  return new Promise(res=>{ const r = tx(store,"readonly").getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>res([]); });
+}
+function put(store,obj){
+  if(memMode || !db){
+    const a = mem[store], i = a.findIndex(x=>x.id===obj.id);
+    if(i>=0) a[i]=obj; else a.push(obj);
+    return Promise.resolve(obj);
+  }
+  return new Promise(res=>{ const r = tx(store,"readwrite").put(obj); r.onsuccess=()=>res(obj); r.onerror=()=>res(obj); });
+}
+function del(store,id){
+  if(memMode || !db){ mem[store] = mem[store].filter(x=>x.id!==id); return Promise.resolve(); }
+  return new Promise(res=>{ const r = tx(store,"readwrite").delete(id); r.onsuccess=()=>res(); r.onerror=()=>res(); });
+}
+function getOne(store,id){
+  if(memMode || !db) return Promise.resolve(mem[store].find(x=>x.id===id)||null);
+  return new Promise(res=>{ const r = tx(store,"readonly").get(id); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); });
+}
+
+/* ---------------- Zustand ---------------- */
+const S = {year:new Date().getFullYear(), purchases:[], items:[], expenses:[], meta:{}, view:"home", draft:null};
+const uid = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const eur = n => (Number(n)||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+const dstr = s => { if(!s) return "—"; const [y,m,d]=s.split("-"); return `${d}.${m}.${y}`; };
+const today = ()=> new Date().toISOString().slice(0,10);
+const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = v => { const n = parseFloat(String(v).replace(",",".")); return isFinite(n)?n:0; };
+
+/* ---------------- Bilder ---------------- */
+const urlCache = new Map();
+function shotURL(id, blob){
+  if(urlCache.has(id)) return urlCache.get(id);
+  const u = URL.createObjectURL(blob); urlCache.set(id,u); return u;
+}
+function compress(file){
+  return new Promise(res=>{
+    const fr = new FileReader();
+    fr.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const max = 1500, sc = Math.min(1, max/Math.max(img.width,img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        c.toBlob(b=>res(b||file), "image/jpeg", 0.72);
+      };
+      img.onerror = ()=>res(file);
+      img.src = fr.result;
+    };
+    fr.onerror = ()=>res(file);
+    fr.readAsDataURL(file);
+  });
+}
+const blobToB64 = b => new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(b); });
+function b64ToBlob(s){
+  const [head,data] = s.split(","), mime = (head.match(/:(.*?);/)||[,"image/jpeg"])[1];
+  const bin = atob(data), arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+
+/* ---------------- Rechnen ---------------- */
+const inYear = (r,y)=> r.year===y;
+const activePurchases = ()=> S.purchases.filter(p=>inYear(p,S.year) && !p.storno && !p.geloescht).sort((a,b)=> b.beleg-a.beleg);
+const yearItems = ()=> S.items.filter(i=>{
+  const p = S.purchases.find(x=>x.id===i.purchaseId);
+  return p && !p.storno && !p.geloescht;
+});
+const PAPIERKORB_TAGE = 30;
+const imPapierkorb = ()=> S.purchases.filter(p=>p.geloescht);
+/* Positionen, die zu lange liegen */
+function langsteher(){
+  const grenze = Date.now() - 365*864e5;
+  return yearItems().filter(i=>{
+    if(i.sale) return false;
+    const p = S.purchases.find(x=>x.id===i.purchaseId);
+    return p && p.datum && new Date(p.datum).getTime() < grenze;
+  });
+}
+function belegQual(p){
+  let q = 1;
+  const hatOrt = (p.vPlz && p.vPlz.trim()) || (p.vMarkt && p.vMarkt.trim()) || (p.vStand && p.vStand.trim());
+  if(p.vName && p.vName.trim() && hatOrt) q++;
+  const shots = (p.shots||[]).map(s=>s.kind);
+  if(shots.includes("eigenbeleg")) q = Math.max(q, p.vName && p.vName.trim() ? 3 : 2);
+  else if(p.zahlart!=="bar" && shots.includes("zahlung")) q++;
+  else if(p.zahlart==="bar" && q===2 && shots.includes("ware") && shots.includes("anzeige")) q++;
+  return Math.min(q,3);
+}
+const QUALTXT = {1:"Nur Betrag belegt", 2:"Verkäufer benannt", 3:"Vollständig belegt"};
+function saleNet(it){
+  const s = it.sale; if(!s) return 0;
+  return num(s.vk) - num(s.gebuehren) - num(s.porto) - num(s.verpackung);
+}
+function stats(){
+  const ps = activePurchases();
+  const its = yearItems();
+  const wareneinkauf = ps.reduce((a,p)=>a+num(p.betrag),0);
+  const sold = its.filter(i=>i.sale && i.sale.datum && i.sale.datum.slice(0,4)==String(S.year));
+  const erloese = sold.reduce((a,i)=>a+num(i.sale.vk),0);
+  const vkNeben = sold.reduce((a,i)=>a+num(i.sale.gebuehren)+num(i.sale.porto)+num(i.sale.verpackung),0);
+  const kosten = S.expenses.filter(e=>inYear(e,S.year)).reduce((a,e)=>a+num(e.betrag),0);
+  const lager = its.filter(i=>!i.sale);
+  const lagerwert = lager.reduce((a,i)=>a+num(i.ek),0);
+  const marge25a = sold.reduce((a,i)=>a+(num(i.sale.vk)-num(i.ek)),0);
+  return {ps,its,sold,wareneinkauf,erloese,vkNeben,kosten,lager,lagerwert,marge25a,
+          ergebnis: erloese - wareneinkauf - vkNeben - kosten};
+}
+function plattformZaehler(){
+  const m = {};
+  S.items.forEach(i=>{
+    if(!i.sale || !i.sale.datum || i.sale.datum.slice(0,4)!=String(S.year)) return;
+    const p = i.sale.plattform||"Sonstige";
+    m[p] = m[p] || {n:0,sum:0};
+    m[p].n++; m[p].sum += num(i.sale.vk);
+  });
+  return m;
+}
+
+/* ---------------- UI-Helfer ---------------- */
+let toastT;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("on"),2100);
+}
+function show(v){
+  S.view = v;
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on", s.id==="v-"+v));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b.dataset.v===v));
+  document.getElementById("fab").style.display = (v==="home"||v==="buy") ? "block" : "none";
+  window.scrollTo(0,0);
+  render();
+}
+function openSheet(title, html, onSave, saveLabel){
+  document.getElementById("shTitle").textContent = title;
+  document.getElementById("shBody").innerHTML = html;
+  const btn = document.getElementById("shSave");
+  btn.textContent = saveLabel || "Sichern";
+  btn.style.display = onSave ? "block" : "none";
+  document.getElementById("sheet").classList.add("on");
+  document.getElementById("sheet")._save = onSave;
+  document.getElementById("shBody").scrollTop = 0;
+}
+function closeSheet(){
+  document.getElementById("sheet").classList.remove("on");
+  document.getElementById("sheet")._save = null;
+  S.draft = null;
+}
+const val = id => (document.getElementById(id)?.value ?? "").trim();
+
+/* ---------------- Rendern ---------------- */
+function render(){
+  storeBtnState();
+  if(S.view==="home") renderHome();
+  if(S.view==="buy") renderBuys();
+  if(S.view==="stock") renderStock();
+  if(S.view==="cost") renderCosts();
+  if(S.view==="out") renderOut();
+}
+
+function renderHome(){
+  const st = stats();
+  const b = [];
+  if(memMode) b.push(`<div class="banner bad"><b>Vorschaumodus.</b> Dieser Browser lässt keinen dauerhaften Speicher zu — Eingaben gehen beim Schließen verloren. Öffne die App über ihre Web-Adresse.</div>`);
+  document.getElementById("homeBanners").innerHTML = b.join("");
+
+  // Handlungspunkte: nur was du auch tun kannst
+  const A = [];
+  const mt = S.meta.markttag;
+  if(mt && mt.aktiv){
+    const heute = S.purchases.filter(p=>!p.storno && !p.geloescht && p.datum===mt.datum && (p.vMarkt||"")===(mt.markt||""));
+    A.push(["var(--ok)", `Markttag läuft · ${esc(mt.markt||"")}`, `${heute.length} Ankäufe · ${eur(heute.reduce((a,p)=>a+num(p.betrag),0))}`, "markttag"]);
+  } else {
+    A.push(["var(--rule)", "Markttag starten", "Markt einmal setzen, danach nur noch Betrag und Ware", "markttag"]);
+  }
+  const lb = S.meta.lastBackup, tage = lb ? Math.floor((Date.now()-lb)/864e5) : null;
+  if(st.ps.length && (tage===null || tage>7))
+    A.push(["var(--stamp)", "Sicherung fällig", tage===null?"Du hast noch nie gesichert":`Letzte Sicherung vor ${tage} Tagen`, "backup"]);
+  const schwach = st.ps.filter(p=>belegQual(p)===1);
+  if(schwach.length)
+    A.push(["var(--signal)", `${schwach.length} ${schwach.length===1?"Beleg":"Belege"} ohne Verkäuferangabe`, "Ohne Name und Anschrift kann der Abzug gestrichen werden (§ 160 AO)", "schwach"]);
+  const ls = langsteher();
+  if(ls.length)
+    A.push(["var(--signal)", `${ls.length} Positionen liegen über ein Jahr`, `Gebundener Einkaufswert ${eur(ls.reduce((a,i)=>a+num(i.ek),0))}`, "langsteher"]);
+  if(st.lager.length)
+    A.push(["var(--rule)", "Verkaufsrunde erfassen", `${st.lager.length} Positionen auf Lager · Stream, Markt oder Auktion in einem Rutsch`, "runde"]);
+  const pk = imPapierkorb();
+  if(pk.length) A.push(["var(--ink-3)", `${pk.length} im Papierkorb`, "Rückholbar, bis die Frist abläuft", "papierkorb"]);
+  document.getElementById("homeActions").innerHTML = `<div class="card" style="margin-bottom:16px">` +
+    A.map(([c,t,d,act])=>`<button class="act" data-home="${act}"><div class="dot" style="background:${c}"></div>
+      <div class="ab"><b>${t}</b><span>${d}</span></div><div class="chev">→</div></button>`).join("") + `</div>`;
+
+  document.getElementById("homeKpis").innerHTML = `
+    <div class="kpi accent"><div class="lab">Wareneinkauf ${S.year}</div><div class="val">${eur(st.wareneinkauf)}</div><div class="sub">${st.ps.length} Ankäufe · ${st.its.length} Positionen</div></div>
+    <div class="kpi"><div class="lab">Verkaufserlöse</div><div class="val">${eur(st.erloese)}</div><div class="sub">${st.sold.length} Verkäufe</div></div>
+    <div class="kpi"><div class="lab">Lagerwert 31.12.</div><div class="val">${eur(st.lagerwert)}</div><div class="sub">${st.lager.length} unverkauft</div></div>
+    <div class="kpi"><div class="lab">Kosten</div><div class="val">${eur(st.kosten+st.vkNeben)}</div><div class="sub">Gebühren, Porto, Fahrten</div></div>
+    <div class="kpi wide"><div class="lab">Ergebnis vor Steuern</div><div class="val" style="color:${st.ergebnis<0?"var(--stamp)":"var(--ok)"}">${eur(st.ergebnis)}</div><div class="sub">Erlöse − Wareneinkauf − Kosten</div></div>`;
+
+  const zc = plattformZaehler(), keys = Object.keys(zc);
+  const hits = keys.filter(k=>zc[k].n>=30 || zc[k].sum>=2000);
+  document.getElementById("pstgSum").textContent = keys.length
+    ? (hits.length ? `${hits.length} Plattform${hits.length>1?"en":""} über der Meldegrenze` : `${keys.length} Plattform${keys.length>1?"en":""} · alle unter der Grenze`)
+    : "Noch keine Verkäufe";
+  if(hits.length) document.getElementById("pstgFold").open = true;
+  document.getElementById("pstg").innerHTML = keys.length ? keys.map(k=>{
+    const c = zc[k], hit = c.n>=30 || c.sum>=2000;
+    return `<div class="dl"><dt>${esc(k)} ${hit?'<span class="tag warn" style="margin-left:5px">gemeldet</span>':''}</dt><dd>${c.n} × · ${eur(c.sum)}</dd></div>`;
+  }).join("") + `<p class="hint">Ab 30 Verkäufen oder 2.000 € Erlös je Plattform und Jahr meldet der Betreiber deine Daten ans Bundeszentralamt für Steuern.</p>`
+  : `<p class="hint" style="margin:0">Sobald du verkaufst, siehst du hier, ob du die Meldegrenzen reißt.</p>`;
+
+  const rec = st.ps.slice(0,5);
+  document.getElementById("homeRecent").innerHTML = rec.length ? rec.map(belegRow).join("")
+    : `<div class="empty"><b>Noch nichts erfasst für ${S.year}.</b>Tipp auf das rote Plus und leg deinen ersten Ankauf an.</div>`;
+}
+
+function belegRow(p){
+  const its = S.items.filter(i=>i.purchaseId===p.id);
+  const verk = its.filter(i=>i.sale).length;
+  const q = belegQual(p);
+  const titel = p.typ==="konvolut" ? (p.bez || `Konvolut · ${its.length} Positionen`) : (its[0]?.bez || p.bez || "Ankauf");
+  return `<button class="beleg ${p.storno?"storno":""}" data-open="${p.id}">
+    <div class="stamp"><b>${String(p.beleg).padStart(4,"0")}</b><span>EB-${p.year}</span></div>
+    <div class="body">
+      <div class="t">${esc(titel)}</div>
+      <div class="m">${dstr(p.datum)} · ${esc(p.vName||p.vNick||"Verkäufer offen")}${verk?` · ${verk}/${its.length} verkauft`:""}</div>
+      <div class="qual q${q}"><i></i><i></i><i></i></div>
+    </div>
+    <div class="amt">${eur(p.betrag)}</div>
+  </button>`;
+}
+
+async function renderBuys(){
+  const ps = S.purchases.filter(p=>inYear(p,S.year)).sort((a,b)=>b.beleg-a.beleg);
+  const galerie = S.buyMode==="galerie";
+  document.getElementById("buyList").style.display = galerie ? "none" : "";
+  document.getElementById("buyGallery").style.display = galerie ? "" : "none";
+  document.querySelectorAll("#buyMode button").forEach(b=>b.classList.toggle("on", b.dataset.mode===(S.buyMode||"liste")));
+
+  document.getElementById("buyList").innerHTML = ps.length ? ps.map(belegRow).join("")
+    : `<div class="empty"><b>Keine Ankäufe in ${S.year}.</b>Jeder Ankauf bekommt automatisch eine fortlaufende Belegnummer.</div>`;
+  if(!galerie) return;
+
+  const g = document.getElementById("buyGallery");
+  if(!ps.length){ g.innerHTML = `<div class="card"><div class="empty"><b>Keine Ankäufe in ${S.year}.</b>Hier siehst du später jeden Beleg mit allen Bildern.</div></div>`; return; }
+  g.innerHTML = ps.map(p=>{
+    const its = S.items.filter(i=>i.purchaseId===p.id);
+    return `<div class="gcard">
+      <div class="ghead">
+        <div class="gn">${String(p.beleg).padStart(4,"0")}</div>
+        <div class="gt"><b>${esc(p.bez||"Ankauf")}</b><span>${dstr(p.datum)} · ${esc(p.vName||p.vMarkt||p.vNick||"Verkäufer offen")}</span></div>
+        <div class="ga">${eur(p.betrag)}</div>
+      </div>
+      <div class="gstrip" data-strip="${p.id}">${(p.shots||[]).length?'<div class="gnone">lädt …</div>':'<div class="gnone">Keine Bilder hinterlegt</div>'}</div>
+      ${its.length>1?`<div class="gpos">${its.map(i=>`<div><span>${esc(i.bez||"Position")}</span><span class="mono">${eur(i.ek)}</span></div>`).join("")}</div>`:""}
+    </div>`;
+  }).join("");
+
+  // Bilder einzeln nachladen, damit nichts blockiert
+  for(const p of ps){
+    const strip = g.querySelector(`[data-strip="${p.id}"]`);
+    if(!strip || !(p.shots||[]).length) continue;
+    strip.innerHTML = "";
+    for(const s of p.shots){
+      const rec = await getOne("images", s.id);
+      if(!rec) continue;
+      const d = document.createElement("button");
+      d.className = "gs";
+      d.dataset.view = s.id;
+      d.dataset.kind = SHOT[s.kind] || "Bild";
+      d.innerHTML = `<img src="${shotURL(s.id, rec.blob)}" alt=""><em>${SHOT[s.kind]||""}</em>`;
+      strip.appendChild(d);
+    }
+    if(!strip.children.length) strip.innerHTML = '<div class="gnone">Keine Bilder hinterlegt</div>';
+  }
+}
+
+function renderStock(){
+  if(S.stockFilterWunsch){ document.getElementById("stockFilter").value = S.stockFilterWunsch; S.stockFilterWunsch = null; }
+  const f = document.getElementById("stockFilter").value;
+  let its = yearItems().filter(i=>{
+    const p = S.purchases.find(x=>x.id===i.purchaseId);
+    if(f==="lager") return !i.sale;
+    if(f==="verkauft") return !!i.sale;
+    return true;
+  });
+  if(f!=="lager") its = its.filter(i=> !i.sale || i.sale.datum.slice(0,4)==String(S.year) || (S.purchases.find(x=>x.id===i.purchaseId)||{}).year===S.year);
+  its.sort((a,b)=> (b.sale?.datum||"9")>(a.sale?.datum||"9") ? 1 : -1);
+  document.getElementById("stockList").innerHTML = its.length ? its.map(i=>{
+    const p = S.purchases.find(x=>x.id===i.purchaseId) || {};
+    const diff = i.sale ? num(i.sale.vk)-num(i.ek) : 0;
+    return `<button class="beleg" data-item="${i.id}">
+      <div class="stamp" style="background:${i.sale?"var(--ok-soft)":"var(--rule-2)"};flex-basis:64px">
+        <b style="color:${i.sale?"var(--ok)":"var(--ink-2)"};font-size:10px;letter-spacing:.08em">${i.sale?"VERKAUFT":"LAGER"}</b>
+        <span style="color:var(--ink-3)">${String(p.beleg||0).padStart(4,"0")}</span>
+      </div>
+      <div class="body">
+        <div class="t">${esc(i.bez||"Position")}</div>
+        <div class="m">EK ${eur(i.ek)}${i.sale?` · VK ${eur(i.sale.vk)} · ${esc(i.sale.plattform||"")}`:` · seit ${dstr(p.datum)}`}</div>
+      </div>
+      <div class="amt" style="color:${i.sale?(diff>=0?"var(--ok)":"var(--stamp)"):"var(--ink-3)"}">${i.sale?(diff>=0?"+":"")+eur(diff):"—"}</div>
+    </button>`;
+  }).join("") : `<div class="empty"><b>Nichts gefunden.</b>Positionen entstehen beim Erfassen eines Ankaufs.</div>`;
+}
+
+function renderCosts(){
+  const es = S.expenses.filter(e=>inYear(e,S.year)).sort((a,b)=> a.datum<b.datum?1:-1);
+  document.getElementById("costList").innerHTML = es.length ? es.map(e=>`
+    <button class="linkrow" data-cost="${e.id}">
+      <div><div class="l">${esc(KAT[e.kat]||e.kat)}</div><div class="d">${dstr(e.datum)}${e.km?` · ${e.km} km`:""}${e.notiz?" · "+esc(e.notiz):""}</div></div>
+      <div class="mono" style="font-weight:600">${eur(e.betrag)}</div>
+    </button>`).join("")
+    : `<div class="empty"><b>Keine Kosten erfasst.</b>Fahrten zum Abholen, Kartons, Polstermaterial — das drückt deinen Gewinn und gehört rein.</div>`;
+}
+
+function renderOut(){
+  const st = stats();
+  document.getElementById("outBanner").innerHTML = st.ps.length ? "" :
+    `<div class="banner info">Für ${S.year} liegt noch nichts vor. Die Auswertungen füllen sich, sobald du Ankäufe erfasst.</div>`;
+  document.getElementById("printRows").innerHTML = `
+    ${outRow("journal","Ankaufsjournal","Alle Ankäufe des Jahres als Tabelle. Die Summe ist dein Wareneinkauf.")}
+    ${outRow("belege","Eigenbelege einzeln","Eine Seite je Ankauf, mit Bildern und Unterschriftszeile.")}
+    ${outRow("marge","§ 25a-Aufstellung","Einkauf, Verkauf und Differenz je Position — Vorsorge für den Fall, dass du aus § 19 rauswächst.")}
+    ${outRow("lager","Lagerliste 31.12.","Unverkaufte Ware mit Einkaufswert. Fragt dein Steuerberater.")}
+    ${outRow("kosten","Kostenaufstellung","Fahrten, Porto, Verpackung, Gebühren.")}
+    ${outRow("verfahren","Verfahrensdokumentation","Beschreibt, wie dieses Buch geführt wird. Einmal drucken, abheften.")}
+    ${outRow("blanko","Ankaufbelege zum Mitnehmen","Vier leere Belege pro Seite mit Unterschriftsfeld — für den Flohmarkt ohne Handy.")}
+    ${outRow("alles","Komplettpaket drucken","Alles oben in einem Rutsch.")}`;
+  const lb = S.meta.lastBackup;
+  document.getElementById("dataRows").innerHTML = `
+    <button class="linkrow" data-act="backup"><div><div class="l">Sicherung erstellen</div><div class="d">${lb?"Zuletzt "+new Date(lb).toLocaleDateString("de-DE"):"Noch nie gesichert"} · Datei mit allen Bildern</div></div><div class="chev">→</div></button>
+    <button class="linkrow" data-act="restore"><div><div class="l">Sicherung einlesen</div><div class="d">Ergänzt fehlende Datensätze, überschreibt nichts</div></div><div class="chev">→</div></button>
+    <button class="linkrow" data-act="papierkorb"><div><div class="l">Papierkorb</div><div class="d">${imPapierkorb().length} Belege · ${PAPIERKORB_TAGE} Tage rückholbar</div></div><div class="chev">→</div></button>
+    <button class="linkrow" data-act="csv"><div><div class="l">CSV für den Steuerberater</div><div class="d">Ankäufe, Positionen und Kosten als Tabelle</div></div><div class="chev">→</div></button>`;
+  const m = S.meta;
+  document.getElementById("settingsRows").innerHTML = `
+    <button class="linkrow" data-act="stamm"><div><div class="l">${esc(m.name||"Name und Anschrift eintragen")}</div><div class="d">${m.name?esc([m.strasse,m.plzOrt].filter(Boolean).join(", ")||"Anschrift fehlt")+(m.stnr?" · "+esc(m.stnr):""):"Erscheint auf jedem Eigenbeleg"}</div></div><div class="chev">→</div></button>`;
+}
+const outRow = (k,l,d)=>`<button class="linkrow" data-print="${k}"><div><div class="l">${l}</div><div class="d">${d}</div></div><div class="chev">↧</div></button>`;
+
+/* ---------------- Ankauf erfassen / bearbeiten ---------------- */
+function nextBeleg(y){
+  const n = S.purchases.filter(p=>p.year===y).reduce((a,p)=>Math.max(a,p.beleg),0);
+  return n+1;
+}
+function purchaseForm(p){
+  const isNew = !p.id;
+  const its = isNew ? (S.draft.items) : S.items.filter(i=>i.purchaseId===p.id);
+  const beleg = isNew ? nextBeleg(S.year) : p.beleg;
+  return `
+  <div class="banner info" style="display:flex;align-items:center;gap:11px">
+    <div style="font-family:var(--mono);font-weight:700;color:var(--stamp);font-size:17px">EB-${p.year||S.year}-${String(beleg).padStart(4,"0")}</div>
+    <div style="flex:1;font-size:12.5px">Belegnummer, fortlaufend vergeben. Bleibt bestehen — Fehler werden storniert, nicht gelöscht.</div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Kaufdatum</label><input type="date" id="f_datum" value="${p.datum||today()}"></div>
+    <div class="field"><label>Kaufpreis gesamt €</label><input type="text" inputmode="decimal" id="f_betrag" class="num" value="${p.betrag??""}" placeholder="0,00"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Zahlart</label><select id="f_zahlart">${Object.entries(ZAHLART).map(([k,v])=>`<option value="${k}" ${p.zahlart===k?"selected":""}>${v}</option>`).join("")}</select></div>
+    <div class="field"><label>Gefunden über</label><select id="f_plattform">${PLATTFORM.map(v=>`<option ${p.plattform===v?"selected":""}>${v}</option>`).join("")}</select></div>
+  </div>
+  <div id="barHint"></div>
+
+  <h2 style="margin-top:22px">Verkäufer</h2>
+  <div id="vWrap"></div>
+
+  <h2 style="margin-top:22px">Nachweise</h2>
+  <div class="shots" id="shotGrid"></div>
+  <button class="btn" id="ebBtn" style="margin-top:10px">Eigenbeleg mit Unterschrift erstellen</button>
+  <p class="hint">Der unterschriebene Eigenbeleg ist der stärkste Nachweis, den du bekommen kannst — besonders am Flohmarkt.</p>
+
+  <h2 style="margin-top:22px">Was hast du gekauft?</h2>
+  <div class="field"><select id="f_typ">
+    <option value="einzel" ${p.typ!=="konvolut"?"selected":""}>Einzelstück</option>
+    <option value="konvolut" ${p.typ==="konvolut"?"selected":""}>Konvolut / Kiste</option>
+  </select></div>
+  <div id="posWrap"></div>
+
+  <div class="field" style="margin-top:18px"><label>Notiz</label><textarea id="f_notiz" placeholder="Zustand, Abholort, Besonderheiten">${esc(p.notiz||"")}</textarea></div>
+  ${isNew?"":`<button class="btn danger" id="stornoBtn" style="margin-top:6px">${p.storno?"Storno aufheben":"Beleg stornieren"}</button>
+  <button class="btn ghost" id="trashBtn" style="margin-top:8px;color:var(--ink-2)">In den Papierkorb (${PAPIERKORB_TAGE} Tage rückholbar)</button>`}`;
+}
+
+function renderShots(){
+  const d = S.draft;
+  const g = document.getElementById("shotGrid"); if(!g) return;
+  g.innerHTML = d.shots.map(s=>`
+    <div class="shot"><img src="${shotURL(s.id, s.blob)}" alt="${SHOT[s.kind]}">
+      <button class="del" data-rmshot="${s.id}" aria-label="Entfernen">×</button>
+      <div class="kindlab">${SHOT[s.kind]}</div></div>`).join("")
+    + Object.entries(SHOT).filter(([k])=>k!=="eigenbeleg" && !d.shots.some(s=>s.kind===k)).map(([k,v])=>`
+    <button class="shot add" data-addshot="${k}"><span>+</span><span>${v}</span></button>`).join("");
+}
+
+function renderPositions(){
+  const d = S.draft, typ = document.getElementById("f_typ").value;
+  const w = document.getElementById("posWrap");
+  const gesamt = num(val("f_betrag"));
+  if(typ==="einzel"){
+    if(d.items.length!==1) d.items = [{id:d.items[0]?.id||uid(), bez:d.items[0]?.bez||"", ek:gesamt, sale:d.items[0]?.sale||null}];
+    d.items[0].ek = gesamt;
+    w.innerHTML = `<div class="field"><label>Bezeichnung</label><input id="p_bez_0" value="${esc(d.items[0].bez||"")}" placeholder="z. B. Nintendo 64 mit 2 Controllern"></div>
+      <p class="hint">Einkaufswert dieser Position: <b class="mono">${eur(gesamt)}</b></p>`;
+    document.getElementById("p_bez_0").oninput = e => d.items[0].bez = e.target.value;
+  } else {
+    if(d.items.length<1) d.items = [{id:uid(),bez:"",ek:0,sale:null}];
+    const auto = d.items.length ? gesamt/d.items.length : 0;
+    w.innerHTML = d.items.map((it,ix)=>`
+      <div class="pos">
+        <div class="hd"><span class="ix">${String(ix+1).padStart(2,"0")}</span>
+          <input data-pbez="${it.id}" value="${esc(it.bez||"")}" placeholder="Bezeichnung">
+          ${it.sale?"":`<button class="rm" data-prm="${it.id}">Weg</button>`}</div>
+        <div class="row"><div class="field" style="margin:0"><label>Anteiliger Einkauf €</label>
+          <input class="num" inputmode="decimal" data-pek="${it.id}" value="${it.ek?String(it.ek).replace(".",","):""}" placeholder="${auto.toFixed(2).replace(".",",")}"></div></div>
+        ${it.sale?`<p class="hint" style="margin-top:8px">Verkauft am ${dstr(it.sale.datum)} für ${eur(it.sale.vk)}</p>`:""}
+      </div>`).join("")
+      + `<button class="btn ghost" id="posAdd">Position hinzufügen</button>
+         <button class="btn ghost" id="posSplit" style="margin-top:8px">Kaufpreis gleichmäßig aufteilen</button>
+         <p class="hint" id="posSum"></p>`;
+    w.querySelectorAll("[data-pbez]").forEach(el=> el.oninput = e=>{ const it=d.items.find(x=>x.id===el.dataset.pbez); it.bez=e.target.value; });
+    w.querySelectorAll("[data-pek]").forEach(el=> el.oninput = e=>{ const it=d.items.find(x=>x.id===el.dataset.pek); it.ek=num(e.target.value); updatePosSum(); });
+    w.querySelectorAll("[data-prm]").forEach(el=> el.onclick = ()=>{ d.items = d.items.filter(x=>x.id!==el.dataset.prm); renderPositions(); });
+    document.getElementById("posAdd").onclick = ()=>{ d.items.push({id:uid(),bez:"",ek:0,sale:null}); renderPositions(); };
+    document.getElementById("posSplit").onclick = ()=>{
+      const n = d.items.length, base = Math.floor(gesamt/n*100)/100;
+      d.items.forEach((it,i)=> it.ek = i===n-1 ? Math.round((gesamt-base*(n-1))*100)/100 : base);
+      renderPositions();
+    };
+    updatePosSum();
+  }
+}
+function updatePosSum(){
+  const el = document.getElementById("posSum"); if(!el) return;
+  const s = S.draft.items.reduce((a,i)=>a+num(i.ek),0), g = num(val("f_betrag")), diff = Math.round((g-s)*100)/100;
+  el.innerHTML = `Verteilt: <b class="mono">${eur(s)}</b> von <b class="mono">${eur(g)}</b>` +
+    (Math.abs(diff)>0.005 ? ` · <span style="color:var(--stamp)">noch ${eur(diff)} offen</span>` : ` · <span style="color:var(--ok)">passt</span>`);
+}
+function updateBarHint(){
+  const el = document.getElementById("barHint"); if(!el) return;
+  el.innerHTML = val("f_zahlart")==="bar"
+    ? `<div class="banner warn" style="margin:0 0 12px"><b>Barzahlung.</b> Hier trägt allein dein Eigenbeleg. Verkäufername und Anschrift sind jetzt Pflicht, dazu ein Foto der Ware und der Anzeige.</div>` : "";
+}
+
+/* ---------------- Eigenbeleg mit Unterschrift ---------------- */
+function openSheet2(title, html, onSave, saveLabel){
+  document.getElementById("sh2Title").textContent = title;
+  document.getElementById("sh2Body").innerHTML = html;
+  const b = document.getElementById("sh2Save");
+  b.textContent = saveLabel || "Fertig"; b.style.display = onSave ? "block" : "none";
+  document.getElementById("sheet2").classList.add("on");
+  document.getElementById("sheet2")._save = onSave;
+}
+function closeSheet2(){ document.getElementById("sheet2").classList.remove("on"); document.getElementById("sheet2")._save = null; }
+
+function sigPad(box){
+  const cv = box.querySelector("canvas"), ph = box.querySelector(".ph");
+  const ctx = cv.getContext("2d");
+  const dpr = Math.min(window.devicePixelRatio||1, 3);
+  const r = cv.getBoundingClientRect();
+  cv.width = Math.max(1, Math.round(r.width*dpr)); cv.height = Math.max(1, Math.round(r.height*dpr));
+  ctx.scale(dpr,dpr);
+  ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#1B2430";
+  let down = false, empty = true;
+  const pt = e => { const b2 = cv.getBoundingClientRect(); return [e.clientX-b2.left, e.clientY-b2.top]; };
+  cv.addEventListener("pointerdown", e=>{ e.preventDefault(); cv.setPointerCapture(e.pointerId); down=true;
+    if(empty){ empty=false; ph.style.display="none"; }
+    const [x,y]=pt(e); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+.1,y); ctx.stroke(); });
+  cv.addEventListener("pointermove", e=>{ if(!down) return; e.preventDefault(); const [x,y]=pt(e); ctx.lineTo(x,y); ctx.stroke(); });
+  cv.addEventListener("pointerup", ()=> down=false);
+  cv.addEventListener("pointercancel", ()=> down=false);
+  box.querySelector(".clr").onclick = ()=>{ ctx.clearRect(0,0,cv.width,cv.height); empty=true; ph.style.display=""; };
+  return {canvas:cv, isEmpty:()=>empty};
+}
+const sigBox = (id,label)=>`<div class="sig" id="${id}"><canvas></canvas><div class="base"></div>
+  <div class="ph">${label}</div><button class="clr" type="button">Löschen</button></div>`;
+
+function drawBeleg(d){
+  const W = 1000, H = 1414, c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const x = c.getContext("2d");
+  x.fillStyle = "#fff"; x.fillRect(0,0,W,H);
+  x.strokeStyle = "#111"; x.lineWidth = 3; x.strokeRect(38,38,W-76,H-76);
+  let y = 108;
+  const M = 78;
+  x.fillStyle = "#111";
+  x.font = "700 44px -apple-system, Helvetica, Arial, sans-serif";
+  x.fillText("EIGENBELEG", M, y);
+  if(d.logo){ try{ const lh = 46, lw = d.logo.width*(lh/d.logo.height);
+    x.drawImage(d.logo, W-M-lw, y-lh-34, lw, lh); }catch(e){} }
+  x.font = "600 24px ui-monospace, Menlo, monospace";
+  x.fillStyle = "#C42B1C";
+  x.fillText(d.beleg, W-M-x.measureText(d.beleg).width, y);
+  y += 22;
+  x.strokeStyle = "#111"; x.lineWidth = 2;
+  x.beginPath(); x.moveTo(M,y); x.lineTo(W-M,y); x.stroke();
+  y += 46;
+
+  const wrap = (t,mx,yy,lh)=>{
+    const words = String(t).split(/\s+/); let line = "", out = yy;
+    words.forEach(w=>{
+      if(x.measureText(line+w+" ").width > mx && line){ x.fillText(line.trim(), M+250, out); out += lh; line = w+" "; }
+      else line += w+" ";
+    });
+    if(line.trim()) { x.fillText(line.trim(), M+250, out); out += lh; }
+    return out;
+  };
+  const row = (k,v)=>{
+    x.fillStyle = "#555"; x.font = "600 19px -apple-system, Helvetica, Arial, sans-serif";
+    x.fillText(k.toUpperCase(), M, y);
+    x.fillStyle = "#111"; x.font = "400 25px -apple-system, Helvetica, Arial, sans-serif";
+    y = wrap(v, W-M-M-250, y, 34) + 20;
+  };
+  row("Kaufdatum", d.datum);
+  row("Gegenstand", d.artikel || "—");
+  x.fillStyle = "#555"; x.font = "600 19px -apple-system, Helvetica, Arial, sans-serif";
+  x.fillText("BETRAG", M, y);
+  x.fillStyle = "#111"; x.font = "700 34px ui-monospace, Menlo, monospace";
+  x.fillText(d.betrag, M+250, y+4); y += 58;
+  row("Zahlart", d.zahlart);
+  row("Empfänger", d.empf || "— nicht erfasst —");
+  if(d.markt) row("Ort des Kaufs", d.markt);
+  row("Grund", "Kauf von einer Privatperson. Der Verkäufer stellt keine Rechnung und keine Quittung aus.");
+  row("Vorsteuer", "Kein Vorsteuerabzug — Erwerb von einer Privatperson.");
+  row("Aussteller", d.aussteller || "—");
+
+  y = Math.max(y+40, H-360);
+  x.fillStyle = "#111"; x.font = "400 22px -apple-system, Helvetica, Arial, sans-serif";
+  x.fillText(`${d.ort||""}${d.ort?", ":""}${d.datum}`, M, y);
+  y += 130;
+  const cw = (W-M-M-60)/2;
+  [[d.sigV,"Unterschrift Verkäufer", M],[d.sigA,"Unterschrift Aussteller", M+cw+60]].forEach(([img,lab,px])=>{
+    if(img){
+      const sc = Math.min(cw/img.width, 110/img.height);
+      x.drawImage(img, px+(cw-img.width*sc)/2, y-img.height*sc, img.width*sc, img.height*sc);
+    }
+    x.strokeStyle = "#111"; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(px, y+8); x.lineTo(px+cw, y+8); x.stroke();
+    x.fillStyle = "#555"; x.font = "600 18px -apple-system, Helvetica, Arial, sans-serif";
+    x.fillText(lab.toUpperCase(), px, y+38);
+  });
+  return c;
+}
+
+function openEigenbeleg(p){
+  const m = S.meta, d = S.draft, v = d.v;
+  const flohmarkt = /flohmarkt/i.test(val("f_plattform"));
+  const beleg = `EB-${p.year||S.year}-${String(p.id?p.beleg:nextBeleg(S.year)).padStart(4,"0")}`;
+  const artikel = d.items.map(i=>i.bez).filter(Boolean).join(", ");
+  const vorhanden = d.shots.some(s=>s.kind==="eigenbeleg");
+  openSheet2("Eigenbeleg", `
+    ${vorhanden?`<div class="banner warn">Für diesen Ankauf gibt es schon einen Eigenbeleg. Ein neuer ersetzt ihn.</div>`:""}
+    ${m.name?"":`<div class="banner bad">Deine Stammdaten fehlen. Trag sie unter Abschluss → Stammdaten ein, sonst bleibt der Aussteller leer.</div>`}
+    <div class="banner info" style="display:flex;gap:11px;align-items:center">
+      <div style="font-family:var(--mono);font-weight:700;color:var(--stamp)">${beleg}</div>
+      <div style="flex:1;font-size:12.5px">Vorbelegt aus dem Ankauf. Ändern geht.</div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Datum</label><input type="date" id="e_datum" value="${val("f_datum")||today()}"></div>
+      <div class="field"><label>Betrag €</label><input class="num" inputmode="decimal" id="e_betrag" value="${val("f_betrag")}"></div>
+    </div>
+    <div class="field"><label>Gegenstand</label><textarea id="e_artikel" placeholder="Was hast du gekauft?">${esc(artikel)}</textarea></div>
+    <div class="field"><label>Verkäufer</label><input id="e_name" value="${esc(v.vName)}" placeholder="${flohmarkt?"Name erfragen — oder leer lassen":"Vor- und Nachname"}" autocapitalize="words"></div>
+    <div class="field"><label>${flohmarkt?"Markt und Stand":"Anschrift"}</label><input id="e_anschrift" value="${esc(flohmarkt ? [v.vMarkt, v.sammel?"mehrere Stände":v.vStand].filter(Boolean).join(", ") : ([v.vStr,v.vPlz].filter(Boolean).join(", ")||v.vMarkt))}" placeholder="${flohmarkt?"Markt, Standnummer":"Straße, PLZ Ort"}"></div>
+    <div class="field"><label>Ort des Kaufs</label><input id="e_ort" value="${esc(v.vMarkt || (m.plzOrt||"").replace(/^\d+\s*/,""))}" placeholder="Kiel"></div>
+
+    <h2 style="margin-top:22px">Unterschriften</h2>
+    <p class="hint" style="margin:-4px 0 10px">Mit dem Finger oder dem Pencil direkt aufs Feld. Die Unterschrift des Verkäufers ist der eigentliche Wert des Belegs.</p>
+    ${sigBox("sigV","Verkäufer")}
+    <div style="height:10px"></div>
+    ${sigBox("sigA","Du als Aussteller")}
+    <div style="height:16px"></div>
+    <div id="ebPrev"></div>
+  `, saveEigenbeleg, "Anhängen");
+  setTimeout(()=>{
+    S.sigV = sigPad(document.getElementById("sigV"));
+    S.sigA = sigPad(document.getElementById("sigA"));
+  }, 60);
+}
+async function saveEigenbeleg(){
+  const m = S.meta, d = S.draft;
+  const betrag = num(document.getElementById("e_betrag").value);
+  if(!betrag){ toast("Betrag fehlt"); return; }
+  const mkImg = pad => new Promise(res=>{
+    if(pad.isEmpty()) return res(null);
+    const i = new Image(); i.onload = ()=>res(i); i.onerror = ()=>res(null); i.src = pad.canvas.toDataURL("image/png");
+  });
+  const [sigV, sigA] = [await mkImg(S.sigV), await mkImg(S.sigA)];
+  if(!sigV && !sigA && !confirm("Kein Feld unterschrieben. Trotzdem anhängen?")) return;
+  const datum = document.getElementById("e_datum").value || today();
+  const p = d.id ? S.purchases.find(x=>x.id===d.id) : null;
+  const canvas = drawBeleg({
+    beleg: `EB-${p?p.year:S.year}-${String(p?p.beleg:nextBeleg(S.year)).padStart(4,"0")}`,
+    datum: dstr(datum),
+    artikel: document.getElementById("e_artikel").value,
+    betrag: eur(betrag),
+    zahlart: ZAHLART[val("f_zahlart")] || "—",
+    empf: [document.getElementById("e_name").value, document.getElementById("e_anschrift").value].filter(Boolean).join(", "),
+    markt: document.getElementById("e_ort").value,
+    aussteller: [m.name, m.strasse, m.plzOrt].filter(Boolean).join(", "),
+    ort: document.getElementById("e_ort").value,
+    sigV, sigA, logo: await (async()=>{ const lg = logoJetzt(); if(!lg) return null;
+      return new Promise(r=>{ const i=new Image(); i.onload=()=>r(i); i.onerror=()=>r(null); i.src=lg; }); })()
+  });
+  const blob = await new Promise(res=> canvas.toBlob(res, "image/jpeg", 0.85));
+  d.shots = d.shots.filter(s=>s.kind!=="eigenbeleg");
+  d.shots.push({id:uid(), kind:"eigenbeleg", blob});
+  const nm = document.getElementById("e_name").value.trim();
+  if(nm && !d.v.vName){ d.v.vName = nm; renderVerkaeufer(); }
+  closeSheet2(); renderShots(); toast("Eigenbeleg angehängt");
+}
+
+/* Vorschlagslisten aus dem, was du schon erfasst hast */
+function datalist(feld){
+  const set = [...new Set(S.purchases.map(p=>p[feld]).filter(x=>x && x.trim()))].sort().slice(0,60);
+  return `<datalist id="dl_${feld}">${set.map(x=>`<option value="${esc(x)}"></option>`).join("")}</datalist>`;
+}
+function bekannterVerkaeufer(name){
+  const t = String(name||"").trim().toLowerCase();
+  if(!t) return null;
+  return S.purchases.filter(p=>(p.vName||"").trim().toLowerCase()===t).sort((a,b)=>b.created-a.created)[0] || null;
+}
+
+/* Welche Verkäuferfelder passen zu welcher Herkunft? */
+function feldSatz(pl){
+  if(/flohmarkt/i.test(pl))  return ["markt","stand","sammel","name"];
+  if(/haushalt/i.test(pl))   return ["markt","name","str","plz"];
+  if(/kleinanzeigen|ebay/i.test(pl)) return ["nick","name","str","plz"];
+  return ["name","str","plz","markt"];
+}
+function renderVerkaeufer(){
+  const w = document.getElementById("vWrap"); if(!w) return;
+  const v = S.draft.v, pl = val("f_plattform"), set = feldSatz(pl);
+  const F = {
+    name:  ["vName","Name des Verkäufers","Vor- und Nachname","words"],
+    str:   ["vStr","Straße und Nr.","Musterweg 4",""],
+    plz:   ["vPlz","PLZ, Ort","24103 Kiel",""],
+    nick:  ["vNick","Nutzername auf der Plattform","z. B. peter_k1978",""],
+    markt: ["vMarkt","Ort des Marktes","z. B. Flohmarkt Nordmarksportfeld, Kiel",""],
+    stand: ["vStand","Stand","z. B. Stand 34, blauer Pavillon",""]
+  };
+  w.innerHTML = set.map(k=>{
+    if(k==="sammel") return `<label style="display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:12px;margin-bottom:12px">
+      <input type="checkbox" id="f_sammel" ${v.sammel?"checked":""} style="width:20px;height:20px;flex:0 0 auto;margin:0;accent-color:var(--stamp)">
+      <span style="font-size:14px;line-height:1.35">Sammelankauf über mehrere Stände<br><span style="font-size:12px;color:var(--ink-3)">Ein Beleg für den ganzen Markttag. Einzelne Verkäufer sind dann nicht zuzuordnen.</span></span></label>`;
+    const [id,lab,ph,cap] = F[k];
+    const dl = (id==="vName"||id==="vNick"||id==="vMarkt") ? ` list="dl_${id}"` : "";
+    return `<div class="field"><label>${lab}</label><input id="f_${id}"${dl} value="${esc(v[id]||"")}" placeholder="${ph}" ${cap?'autocapitalize="'+cap+'"':""}></div>${dl?datalist(id):""}`;
+  }).join("")
+  + `<p class="hint">${/flohmarkt/i.test(pl)
+      ? "Am Markt reicht der Name allein oft nicht — lass den Eigenbeleg unterschreiben, das ersetzt die fehlende Anschrift."
+      : "Ohne Name und Anschrift des Zahlungsempfängers darf das Finanzamt den Betriebsausgabenabzug streichen (§ 160 AO)."}</p>`;
+  set.forEach(k=>{
+    if(k==="sammel"){ const c = document.getElementById("f_sammel"); if(c) c.onchange = e=>{ v.sammel = e.target.checked; }; return; }
+    const el = document.getElementById("f_"+F[k][0]);
+    if(!el) return;
+    el.oninput = e=> v[F[k][0]] = e.target.value;
+    if(F[k][0]==="vName") el.onchange = ()=>{
+      const alt2 = bekannterVerkaeufer(el.value);
+      if(alt2 && !v.vStr && !v.vPlz && (alt2.vStr || alt2.vPlz)){
+        v.vStr = alt2.vStr||""; v.vPlz = alt2.vPlz||""; v.vNick = v.vNick||alt2.vNick||"";
+        renderVerkaeufer(); toast("Anschrift übernommen");
+      }
+    };
+  });
+}
+
+function openPurchase(id){
+  const lu = S.meta.lastUsed || {};
+  const mt = S.meta.markttag;
+  const p = id ? S.purchases.find(x=>x.id===id)
+    : (mt && mt.aktiv
+        ? {year:S.year, datum:mt.datum||today(), zahlart:"bar", plattform:"Flohmarkt", typ:lu.typ||"einzel", vMarkt:mt.markt||""}
+        : {year:S.year, datum:today(), zahlart:lu.zahlart||"ueberweisung", plattform:lu.plattform||"Kleinanzeigen",
+           typ:lu.typ||"einzel", vMarkt:lu.vMarkt||""});
+  const existing = id ? S.items.filter(i=>i.purchaseId===id) : [];
+  S.draft = {
+    id: id||null,
+    shots: [],
+    v: {vName:p.vName||"", vStr:p.vStr||"", vPlz:p.vPlz||"", vNick:p.vNick||"",
+        vMarkt:p.vMarkt||(id?"":lu.vMarkt||""), vStand:p.vStand||"", sammel:!!p.sammel},
+    items: existing.map(i=>({id:i.id,bez:i.bez,ek:i.ek,sale:i.sale}))
+  };
+  if(id) loadShots(p);
+  openSheet(id ? "Beleg "+String(p.beleg).padStart(4,"0") : "Neuer Ankauf", purchaseForm(p), ()=>savePurchase(p), "Sichern");
+  bindPurchaseForm(p);
+}
+async function loadShots(p){
+  for(const s of (p.shots||[])){
+    const rec = await getOne("images", s.id);
+    if(rec) S.draft.shots.push({id:s.id, kind:s.kind, blob:rec.blob});
+  }
+  renderShots();
+}
+function bindPurchaseForm(p){
+  renderShots(); renderPositions(); updateBarHint(); renderVerkaeufer();
+  document.getElementById("f_plattform").onchange = ()=>{ renderVerkaeufer(); updateBarHint(); };
+  document.getElementById("f_typ").onchange = renderPositions;
+  document.getElementById("f_betrag").oninput = ()=>{ const t=document.getElementById("f_typ").value; if(t==="einzel") renderPositions(); else updatePosSum(); };
+  document.getElementById("f_zahlart").onchange = updateBarHint;
+  document.getElementById("ebBtn").onclick = ()=>openEigenbeleg(p);
+  const sb = document.getElementById("stornoBtn");
+  if(sb) sb.onclick = async ()=>{
+    const cur = S.purchases.find(x=>x.id===p.id);
+    if(!cur.storno && !confirm("Beleg stornieren? Er bleibt in der Nummernfolge stehen und wird als storniert gedruckt.")) return;
+    cur.storno = !cur.storno; await put("purchases",cur); closeSheet(); render(); toast(cur.storno?"Beleg storniert":"Storno aufgehoben");
+  };
+  const tb = document.getElementById("trashBtn");
+  if(tb) tb.onclick = async ()=>{
+    if(!confirm(`Beleg in den Papierkorb legen? Du kannst ihn ${PAPIERKORB_TAGE} Tage lang zurückholen. Danach wird er fest als Storno verbucht — die Nummer bleibt in jedem Fall vergeben.`)) return;
+    const cur = S.purchases.find(x=>x.id===p.id);
+    cur.geloescht = Date.now(); await put("purchases",cur);
+    await reload(); closeSheet(); toast("In den Papierkorb gelegt");
+  };
+}
+async function savePurchase(p){
+  const d = S.draft;
+  const betrag = num(val("f_betrag"));
+  if(!betrag){ toast("Kaufpreis fehlt"); return; }
+  const typ = val("f_typ");
+  if(typ==="konvolut"){
+    const s = d.items.reduce((a,i)=>a+num(i.ek),0);
+    if(Math.abs(s-betrag)>0.02 && !confirm(`Die Positionen ergeben ${eur(s)}, der Kaufpreis ist ${eur(betrag)}. Trotzdem sichern?`)) return;
+  }
+  const datum = val("f_datum")||today();
+  const year = parseInt(datum.slice(0,4),10);
+  const rec = {
+    id: d.id || uid(),
+    year: p.id ? p.year : year,
+    beleg: p.id ? p.beleg : nextBeleg(year),
+    datum, betrag,
+    zahlart: val("f_zahlart"), plattform: val("f_plattform"),
+    ...S.draft.v,
+    typ, notiz: val("f_notiz"),
+    bez: typ==="konvolut" ? (d.items.map(i=>i.bez).filter(Boolean).slice(0,2).join(", ") || "Konvolut") : (d.items[0]?.bez||""),
+    storno: p.storno||false,
+    created: p.created || Date.now(),
+    shots: d.shots.map(s=>({id:s.id, kind:s.kind}))
+  };
+  for(const s of d.shots) await put("images",{id:s.id, blob:s.blob, purchaseId:rec.id});
+  const oldIds = S.items.filter(i=>i.purchaseId===rec.id).map(i=>i.id);
+  for(const oid of oldIds) if(!d.items.some(i=>i.id===oid)) await del("items",oid);
+  for(const i of d.items){
+    await put("items",{id:i.id, purchaseId:rec.id, year:rec.year, bez:i.bez||rec.bez||"Position", ek:num(i.ek)||(typ==="einzel"?betrag:0), sale:i.sale||null});
+  }
+  await put("purchases",rec);
+  S.meta.lastUsed = {zahlart:rec.zahlart, plattform:rec.plattform, typ:rec.typ, vMarkt:rec.vMarkt};
+  await put("meta",{id:"stamm", ...S.meta});
+
+  // Zurücklesen: erst wenn der Datensatz aus dem Speicher zurückkommt, gilt er als abgelegt
+  const check = await getOne("purchases", rec.id);
+  const bilder = [];
+  for(const s of rec.shots) if(await getOne("images", s.id)) bilder.push(s.id);
+  await reload(); closeSheet();
+  if(check && bilder.length === rec.shots.length){
+    toast(`Beleg ${String(rec.beleg).padStart(4,"0")} abgelegt · ${rec.shots.length} Bilder ✓`);
+  } else {
+    toast("Achtung: nicht alles konnte abgelegt werden");
+  }
+}
+
+/* ---------------- Verkauf ---------------- */
+function openItem(id){
+  const it = S.items.find(x=>x.id===id); if(!it) return;
+  const p = S.purchases.find(x=>x.id===it.purchaseId)||{};
+  const s = it.sale||{};
+  openSheet(it.bez||"Position", `
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="dl"><dt>Beleg</dt><dd>EB-${p.year}-${String(p.beleg).padStart(4,"0")}</dd></div>
+      <div class="dl"><dt>Angekauft</dt><dd>${dstr(p.datum)}</dd></div>
+      <div class="dl"><dt>Einkaufswert</dt><dd>${eur(it.ek)}</dd></div>
+    </div>
+    <div class="field"><label>Bezeichnung</label><input id="i_bez" value="${esc(it.bez||"")}"></div>
+    <h2>Verkauf</h2>
+    <div class="row">
+      <div class="field"><label>Verkaufsdatum</label><input type="date" id="i_datum" value="${s.datum||""}"></div>
+      <div class="field"><label>Plattform</label><select id="i_plat">${VK_PLATTFORM.map(v=>`<option ${s.plattform===v?"selected":""}>${v}</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label>Verkaufspreis brutto €</label><input class="num" inputmode="decimal" id="i_vk" value="${s.vk??""}" placeholder="0,00"></div>
+    <div class="row">
+      <div class="field"><label>Gebühren €</label><input class="num" inputmode="decimal" id="i_geb" value="${s.gebuehren??""}" placeholder="0,00"></div>
+      <div class="field"><label>Porto €</label><input class="num" inputmode="decimal" id="i_porto" value="${s.porto??""}" placeholder="0,00"></div>
+    </div>
+    <div class="field"><label>Verpackung €</label><input class="num" inputmode="decimal" id="i_verp" value="${s.verpackung??""}" placeholder="0,00"></div>
+    <div class="banner info" id="i_calc"></div>
+    ${it.sale?`<button class="btn danger" id="i_undo">Verkauf zurücknehmen</button>`:""}
+  `, ()=>saveItem(it), "Sichern");
+  const upd = ()=>{
+    const vk = num(val("i_vk")), diff = vk-num(it.ek);
+    const net = vk-num(val("i_geb"))-num(val("i_porto"))-num(val("i_verp"))-num(it.ek);
+    document.getElementById("i_calc").innerHTML =
+      `<div class="dl"><dt>Differenz § 25a (VK − EK)</dt><dd>${eur(diff)}</dd></div>
+       <div class="dl"><dt>Nach allen Kosten</dt><dd style="color:${net<0?"var(--stamp)":"var(--ok)"}">${eur(net)}</dd></div>`;
+  };
+  ["i_vk","i_geb","i_porto","i_verp"].forEach(k=> document.getElementById(k).oninput = upd);
+  upd();
+  const u = document.getElementById("i_undo");
+  if(u) u.onclick = async ()=>{ it.sale=null; await put("items",it); await reload(); closeSheet(); toast("Verkauf zurückgenommen"); };
+}
+async function saveItem(it){
+  it.bez = val("i_bez")||it.bez;
+  const datum = val("i_datum"), vk = num(val("i_vk"));
+  if(datum && vk){
+    it.sale = {datum, plattform: val("i_plat"), vk, gebuehren:num(val("i_geb")), porto:num(val("i_porto")), verpackung:num(val("i_verp"))};
+  } else if(datum || vk){ toast("Datum und Verkaufspreis gehören zusammen"); return; }
+  await put("items",it); await reload(); closeSheet(); toast("Gesichert");
+}
+
+/* ---------------- Markttag ---------------- */
+function openMarkttag(){
+  const mt = S.meta.markttag || {};
+  if(mt.aktiv){
+    const heute = S.purchases.filter(p=>!p.storno && !p.geloescht && p.datum===mt.datum && (p.vMarkt||"")===(mt.markt||""));
+    const sum = heute.reduce((a,p)=>a+num(p.betrag),0);
+    openSheet2("Markttag", `
+      <div class="banner info"><b>${esc(mt.markt||"Markt")}</b><br>${dstr(mt.datum)}</div>
+      <div class="card pad">
+        <div class="dl"><dt>Ankäufe heute</dt><dd>${heute.length}</dd></div>
+        <div class="dl"><dt>Ausgegeben</dt><dd>${eur(sum)}</dd></div>
+      </div>
+      <p class="hint" style="margin-top:12px">Solange der Markttag läuft, sind neue Ankäufe auf Flohmarkt, Barzahlung, dieses Datum und diesen Markt vorbelegt. Du tippst nur noch Betrag, Ware und Stand.</p>
+      <button class="btn" id="mt_add" style="margin-top:14px">Ankauf erfassen</button>
+      <button class="btn ghost" id="mt_end">Markttag beenden</button>`, null);
+    document.getElementById("mt_add").onclick = ()=>{ closeSheet2(); openPurchase(null); };
+    document.getElementById("mt_end").onclick = async ()=>{
+      S.meta.markttag = {...mt, aktiv:false};
+      await put("meta",{id:"stamm", ...S.meta}); closeSheet2(); render(); toast("Markttag beendet");
+    };
+    return;
+  }
+  openSheet2("Markttag starten", `
+    <p class="hint" style="margin-bottom:14px">Einmal Markt und Datum setzen — danach ist jeder Ankauf schon halb ausgefüllt.</p>
+    <div class="field"><label>Ort des Marktes</label><input id="mt_markt" list="dl_vMarkt" value="${esc(mt.markt||"")}" placeholder="z. B. Flohmarkt Nordmarksportfeld, Kiel"></div>
+    ${datalist("vMarkt")}
+    <div class="field"><label>Datum</label><input type="date" id="mt_datum" value="${today()}"></div>`,
+    async ()=>{
+      const markt = document.getElementById("mt_markt").value.trim();
+      if(!markt){ toast("Ort fehlt"); return; }
+      S.meta.markttag = {aktiv:true, markt, datum: document.getElementById("mt_datum").value || today()};
+      await put("meta",{id:"stamm", ...S.meta});
+      closeSheet2(); render(); toast("Markttag läuft");
+    }, "Starten");
+}
+
+/* ---------------- Verkaufsrunde (Stream, Markt, Auktion) ---------------- */
+const GEB_VORSCHLAG = {Whatnot:8, eBay:11, Kleinanzeigen:0, Vinted:0, Direkt:0, Sonstige:0};
+
+async function openRunde(id){
+  const evs = await all("events");
+  const ev = id ? evs.find(e=>e.id===id) : null;
+  const lager = yearItems().filter(i=>!i.sale || (ev && i.sale.eventId===ev.id));
+  if(!lager.length && !ev){ toast("Nichts auf Lager"); return; }
+  S.runde = {sel:{}, preise:{}};
+  if(ev) S.items.filter(i=>i.sale && i.sale.eventId===ev.id).forEach(i=>{ S.runde.sel[i.id]=true; S.runde.preise[i.id]=i.sale.vk; });
+
+  openSheet(ev?"Verkaufsrunde":"Neue Verkaufsrunde", `
+    <div class="row">
+      <div class="field"><label>Datum</label><input type="date" id="r_datum" value="${ev?ev.datum:today()}"></div>
+      <div class="field"><label>Plattform</label><select id="r_plat">${VK_PLATTFORM.map(v=>`<option ${ev&&ev.plattform===v?"selected":""}>${v}</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label>Bezeichnung</label><input id="r_titel" value="${esc(ev?ev.titel:"")}" placeholder="z. B. Stream Retro-Konsolen"></div>
+    <div class="row">
+      <div class="field"><label>Gebühren in %</label><input class="num" inputmode="decimal" id="r_geb" value="${ev?ev.geb:""}" placeholder="8"></div>
+      <div class="field"><label>Umsatz laut Plattform €</label><input class="num" inputmode="decimal" id="r_soll" value="${ev&&ev.soll?ev.soll:""}" placeholder="optional"></div>
+    </div>
+    <p class="hint">Die Gebühren werden auf jede Zeile umgelegt. Trägst du den Umsatz laut Plattform ein, prüft die App gegen deine Zeilen.</p>
+    <h2 style="margin-top:20px">Was ist weggegangen?</h2>
+    <div class="field"><input id="r_such" placeholder="Suchen …"></div>
+    <div class="card" id="r_liste"></div>
+    <div class="rsum" id="r_sum"></div>
+  `, ()=>saveRunde(ev), "Übernehmen");
+
+  const zeilen = ()=>{
+    const q = (document.getElementById("r_such").value||"").toLowerCase();
+    const liste = lager.filter(i=>!q || (i.bez||"").toLowerCase().includes(q));
+    document.getElementById("r_liste").innerHTML = liste.length ? liste.map(i=>{
+      const p = S.purchases.find(x=>x.id===i.purchaseId)||{};
+      const an = !!S.runde.sel[i.id];
+      return `<div class="rrow ${an?"":"off"}" data-rid="${i.id}">
+        <input type="checkbox" ${an?"checked":""} data-rchk="${i.id}">
+        <div class="rb"><b>${esc(i.bez||"Position")}</b><span>Beleg ${String(p.beleg||0).padStart(4,"0")} · EK ${eur(i.ek)}</span></div>
+        <input type="text" inputmode="decimal" class="num" data-rvk="${i.id}" value="${S.runde.preise[i.id]??""}" placeholder="VK €">
+      </div>`;
+    }).join("") : `<div class="empty"><b>Nichts gefunden.</b></div>`;
+    document.querySelectorAll("[data-rchk]").forEach(c=> c.onchange = e=>{
+      S.runde.sel[c.dataset.rchk] = e.target.checked;
+      c.closest(".rrow").classList.toggle("off", !e.target.checked);
+      summe();
+    });
+    document.querySelectorAll("[data-rvk]").forEach(f=> f.oninput = e=>{
+      const id = f.dataset.rvk;
+      S.runde.preise[id] = e.target.value;
+      if(num(e.target.value) && !S.runde.sel[id]){
+        S.runde.sel[id] = true;
+        const c = document.querySelector(`[data-rchk="${id}"]`); if(c) c.checked = true;
+        f.closest(".rrow").classList.remove("off");
+      }
+      summe();
+    });
+    summe();
+  };
+  const summe = ()=>{
+    const ids = Object.keys(S.runde.sel).filter(k=>S.runde.sel[k]);
+    const brutto = ids.reduce((a,k)=>a+num(S.runde.preise[k]),0);
+    const gebP = num(document.getElementById("r_geb").value);
+    const ek = ids.reduce((a,k)=>{ const it = S.items.find(x=>x.id===k); return a+num(it?it.ek:0); },0);
+    const geb = brutto*gebP/100;
+    const soll = num(document.getElementById("r_soll").value);
+    const diff = soll ? Math.round((soll-brutto)*100)/100 : 0;
+    document.getElementById("r_sum").innerHTML = `
+      <div class="dl"><dt>${ids.length} Positionen</dt><dd>${eur(brutto)}</dd></div>
+      <div class="dl"><dt>Gebühren ${gebP||0} %</dt><dd>− ${eur(geb)}</dd></div>
+      <div class="dl"><dt>Einkaufswert</dt><dd>− ${eur(ek)}</dd></div>
+      <div class="dl"><dt><b>Bleibt</b></dt><dd style="color:${brutto-geb-ek<0?"var(--stamp)":"var(--ok)"}"><b>${eur(brutto-geb-ek)}</b></dd></div>
+      ${soll?`<div class="dl"><dt>Gegen Plattform</dt><dd style="color:${Math.abs(diff)<0.01?"var(--ok)":"var(--stamp)"}">${Math.abs(diff)<0.01?"passt":eur(diff)+" offen"}</dd></div>`:""}`;
+  };
+  document.getElementById("r_such").oninput = zeilen;
+  ["r_geb","r_soll"].forEach(k=> document.getElementById(k).oninput = summe);
+  document.getElementById("r_plat").onchange = e=>{
+    const g = GEB_VORSCHLAG[e.target.value];
+    if(g!==undefined && !document.getElementById("r_geb").value) document.getElementById("r_geb").value = g;
+    summe();
+  };
+  const g0 = GEB_VORSCHLAG[val("r_plat")];
+  if(!ev && g0!==undefined) document.getElementById("r_geb").value = g0;
+  zeilen();
+}
+
+async function saveRunde(ev){
+  const ids = Object.keys(S.runde.sel).filter(k=>S.runde.sel[k]);
+  if(!ids.length){ toast("Nichts ausgewählt"); return; }
+  const ohne = ids.filter(k=>!num(S.runde.preise[k]));
+  if(ohne.length && !confirm(`${ohne.length} Position(en) ohne Preis. Trotzdem übernehmen? Sie bleiben dann auf Lager.`)) return;
+  const datum = val("r_datum")||today(), plat = val("r_plat"), gebP = num(val("r_geb"));
+  const rec = {id: ev?ev.id:uid(), year: parseInt(datum.slice(0,4),10), datum, plattform:plat,
+               titel: val("r_titel")||`${plat} ${dstr(datum)}`, geb:gebP, soll:num(val("r_soll"))||null};
+  await put("events", rec);
+  let n = 0;
+  for(const k of ids){
+    const vk = num(S.runde.preise[k]); if(!vk) continue;
+    const it = S.items.find(x=>x.id===k); if(!it) continue;
+    it.sale = {datum, plattform:plat, vk, gebuehren: Math.round(vk*gebP)/100,
+               porto: it.sale?num(it.sale.porto):0, verpackung: it.sale?num(it.sale.verpackung):0, eventId:rec.id};
+    await put("items", it); n++;
+  }
+  await reload(); closeSheet();
+  toast(`${n} Positionen als verkauft gebucht ✓`);
+}
+
+/* ---------------- Kosten ---------------- */
+function openCost(id){
+  const e = id ? S.expenses.find(x=>x.id===id) : {datum:today(), kat:"fahrt"};
+  openSheet(id?"Kosten":"Kosten erfassen", `
+    <div class="row">
+      <div class="field"><label>Datum</label><input type="date" id="c_datum" value="${e.datum||today()}"></div>
+      <div class="field"><label>Art</label><select id="c_kat">${Object.entries(KAT).map(([k,v])=>`<option value="${k}" ${e.kat===k?"selected":""}>${v}</option>`).join("")}</select></div>
+    </div>
+    <div id="c_km"></div>
+    <div class="field"><label>Betrag €</label><input class="num" inputmode="decimal" id="c_betrag" value="${e.betrag??""}" placeholder="0,00"></div>
+    <div class="field"><label>Notiz</label><input id="c_notiz" value="${esc(e.notiz||"")}" placeholder="Wofür?"></div>
+    ${id?`<button class="btn danger" id="c_del">Löschen</button>`:""}
+  `, ()=>saveCost(e), "Sichern");
+  const kmBox = ()=>{
+    const isFahrt = val("c_kat")==="fahrt";
+    document.getElementById("c_km").innerHTML = isFahrt
+      ? `<div class="field"><label>Gefahrene Kilometer</label><input class="num" inputmode="decimal" id="c_kmv" value="${e.km??""}" placeholder="0"></div>
+         <p class="hint" style="margin:-6px 0 12px">${KM_SATZ.toFixed(2).replace(".",",")} € je gefahrenem Kilometer — der Betrag rechnet sich selbst.</p>` : "";
+    const f = document.getElementById("c_kmv");
+    if(f) f.oninput = ()=> document.getElementById("c_betrag").value = (num(f.value)*KM_SATZ).toFixed(2).replace(".",",");
+  };
+  document.getElementById("c_kat").onchange = kmBox; kmBox();
+  const dl = document.getElementById("c_del");
+  if(dl) dl.onclick = async ()=>{ if(!confirm("Diesen Kostenposten löschen?")) return; await del("expenses",e.id); await reload(); closeSheet(); toast("Gelöscht"); };
+}
+async function saveCost(e){
+  const betrag = num(val("c_betrag"));
+  if(!betrag){ toast("Betrag fehlt"); return; }
+  const datum = val("c_datum")||today();
+  await put("expenses",{id:e.id||uid(), year:parseInt(datum.slice(0,4),10), datum, kat:val("c_kat"), betrag, km:num(val("c_kmv")||0)||null, notiz:val("c_notiz")});
+  await reload(); closeSheet(); toast("Gesichert");
+}
+
+/* ---------------- Stammdaten ---------------- */
+function openStamm(){
+  const m = S.meta;
+  openSheet("Stammdaten", `
+    <p class="hint" style="margin-bottom:16px">Diese Angaben stehen auf jedem gedruckten Eigenbeleg.</p>
+    <div class="field"><label>Name</label><input id="s_name" value="${esc(m.name||"")}" autocapitalize="words"></div>
+    <div class="field"><label>Gewerbebezeichnung</label><input id="s_firma" value="${esc(m.firma||"")}" placeholder="An- und Verkauf von Gebrauchtwaren"></div>
+    <div class="field"><label>Straße und Nr.</label><input id="s_strasse" value="${esc(m.strasse||"")}"></div>
+    <div class="field"><label>PLZ, Ort</label><input id="s_plzOrt" value="${esc(m.plzOrt||"")}"></div>
+    <div class="field"><label>Steuernummer</label><input id="s_stnr" value="${esc(m.stnr||"")}"></div>
+    <div class="field"><label>Marke oder Herausgeber</label><input id="s_marke" value="${esc(m.marke||"")}" placeholder="Piet van Dyk"></div>
+    <div class="field"><label>Logo</label>
+      <div id="logoBox"></div>
+      <button class="btn ghost" id="s_logo" style="margin-top:8px">${S.meta.logo?"Logo austauschen":"Eigenes Logo wählen"}</button>
+      <button class="btn ghost" id="s_logoDel" style="margin-top:8px;color:var(--stamp)">Logo entfernen</button>
+      <p class="hint">Steht im Kopf jedes Berichts und auf dem Eigenbeleg. PNG mit weißem oder transparentem Hintergrund sieht am besten aus.</p></div>
+    <div class="banner info">Kleinunternehmer nach § 19 UStG: du weist keine Umsatzsteuer aus und ziehst aus Privatankäufen ohnehin keine Vorsteuer. Die § 25a-Spalten laufen trotzdem mit, damit die Zahlen da sind, falls du die Grenze reißt.</div>
+  `, async ()=>{
+    Object.assign(S.meta, {name:val("s_name"), firma:val("s_firma"), strasse:val("s_strasse"),
+      plzOrt:val("s_plzOrt"), stnr:val("s_stnr"), marke:val("s_marke")});
+    await put("meta",{id:"stamm", ...S.meta}); closeSheet(); render(); toast("Gesichert");
+  }, "Sichern");
+  const zeigeLogo = ()=>{
+    const box = document.getElementById("logoBox");
+    const lg = logoJetzt();
+    box.innerHTML = lg
+      ? `<img src="${lg}" alt="Logo" style="max-width:100%;max-height:90px;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px;display:block">`
+      : `<p class="hint" style="margin:0">Kein Logo hinterlegt — Berichte laufen dann ohne.</p>`;
+  };
+  zeigeLogo();
+  document.getElementById("s_logo").onclick = ()=>{
+    const fp = document.getElementById("filePick");
+    fp.dataset.kind = "__logo"; fp.value = ""; fp.click();
+  };
+  const ld = document.getElementById("s_logoDel");
+  if(ld) ld.onclick = async ()=>{ S.meta.logo = null; await put("meta",{id:"stamm", ...S.meta}); zeigeLogo(); render(); toast("Logo entfernt"); };
+  S._logoRefresh = zeigeLogo;
+}
+
+/* ---------------- Papierkorb ---------------- */
+async function papierkorbAufraeumen(){
+  const grenze = Date.now() - PAPIERKORB_TAGE*864e5;
+  for(const p of S.purchases){
+    if(p.geloescht && p.geloescht < grenze){
+      p.storno = true; p.geloescht = null; p.stornoGrund = "Papierkorb-Frist abgelaufen";
+      await put("purchases", p);
+    }
+  }
+}
+function openPapierkorb(){
+  const ps = imPapierkorb().sort((a,b)=>b.geloescht-a.geloescht);
+  openSheet2("Papierkorb", ps.length ? `
+    <p class="hint" style="margin-bottom:14px">Nach ${PAPIERKORB_TAGE} Tagen wird ein Beleg fest als Storno verbucht und verschwindet hier. Die Belegnummer bleibt immer vergeben — das ist der Grund, warum nichts wirklich gelöscht wird.</p>
+    <div class="card">${ps.map(p=>{
+      const rest = PAPIERKORB_TAGE - Math.floor((Date.now()-p.geloescht)/864e5);
+      return `<div class="act">
+        <div class="ab"><b>${String(p.beleg).padStart(4,"0")} · ${esc(p.bez||"Ankauf")}</b>
+        <span>${dstr(p.datum)} · ${eur(p.betrag)} · noch ${Math.max(rest,0)} Tage</span></div>
+        <button class="tag ok" data-restore="${p.id}">Zurückholen</button></div>`;
+    }).join("")}</div>` : `<div class="empty"><b>Papierkorb ist leer.</b>Belege, die du hier hineinlegst, kannst du ${PAPIERKORB_TAGE} Tage lang zurückholen.</div>`, null);
+  document.querySelectorAll("[data-restore]").forEach(b=> b.onclick = async ()=>{
+    const p = S.purchases.find(x=>x.id===b.dataset.restore);
+    p.geloescht = null; await put("purchases",p); await reload(); closeSheet2(); toast("Beleg zurückgeholt");
+  });
+}
+
+/* ---------------- Speicherstatus ---------------- */
+async function openStorage(){
+  const ps = await all("purchases"), its = await all("items"), ims = await all("images"), exs = await all("expenses");
+  let mb = null, quota = null, dauerhaft = false;
+  try{ const e = await navigator.storage.estimate(); if(e){ mb = e.usage/1048576; quota = e.quota/1048576; } }catch(e){}
+  try{ dauerhaft = await navigator.storage.persisted(); }catch(e){}
+  const lb = S.meta.lastBackup, tage = lb ? Math.floor((Date.now()-lb)/864e5) : null;
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  openSheet2("Speicher", `
+    ${memMode?`<div class="banner bad"><b>Vorschaumodus.</b> Nichts wird abgelegt. Öffne die App über ihre Web-Adresse.</div>`
+      :`<div class="banner ${dauerhaft?"info":"warn"}"><b>${dauerhaft?"Speicher ist dauerhaft angemeldet.":"Speicher noch nicht als dauerhaft bestätigt."}</b>
+        ${dauerhaft?"iOS räumt ihn nicht von allein weg.":"Meist reicht es, die App ein paar Mal über das Home-Symbol zu starten. Sichere bis dahin öfter."}</div>`}
+    ${standalone?"":`<div class="banner warn"><b>Du bist im Browser, nicht in der App.</b> Über Safari geöffnet ist der Speicher ein anderer als der des Home-Bildschirm-Symbols. Nutz immer dasselbe.</div>`}
+    <div class="card pad">
+      <div class="dl"><dt>Belege</dt><dd>${ps.length}</dd></div>
+      <div class="dl"><dt>Positionen</dt><dd>${its.length}</dd></div>
+      <div class="dl"><dt>Bilder</dt><dd>${ims.length}</dd></div>
+      <div class="dl"><dt>Kostenposten</dt><dd>${exs.length}</dd></div>
+      ${mb!==null?`<div class="dl"><dt>Belegt</dt><dd>${mb.toFixed(1)} MB${quota?" von "+Math.round(quota)+" MB":""}</dd></div>`:""}
+      <div class="dl"><dt>Letzte Sicherung</dt><dd>${lb?new Date(lb).toLocaleDateString("de-DE"):"nie"}</dd></div>
+    </div>
+    ${tage===null||tage>7?`<div class="banner warn" style="margin-top:12px">Sicherung fällig. Zwei Tipps und die Datei liegt in iCloud.</div>`:""}
+    <button class="btn" id="st_backup" style="margin-top:14px">Jetzt sichern</button>
+    <p class="hint" style="margin-top:14px">Die Zahlen oben stammen aus dem Speicher selbst, nicht aus der Anzeige — steht hier etwas, ist es wirklich abgelegt.<br><br>
+    Bilder in der Fotos-App darfst du löschen: die App hat beim Hinzufügen eine eigene Kopie angelegt.<br><br>
+    Verloren geht alles nur, wenn du das App-Symbol vom Home-Bildschirm löschst oder in den Safari-Einstellungen die Website-Daten entfernst. Dagegen hilft nur die Sicherungsdatei.</p>
+  `, null);
+  document.getElementById("st_backup").onclick = async ()=>{ closeSheet2(); await backup(); };
+}
+function storeBtnState(){
+  const lb = S.meta.lastBackup;
+  const faellig = !lb || (Date.now()-lb)/864e5 > 7;
+  document.getElementById("storeBtn").classList.toggle("alert", memMode || faellig);
+}
+
+/* ---------------- Sicherung ---------------- */
+function download(name, blob){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+async function backup(){
+  toast("Sicherung wird gepackt …");
+  const imgs = await all("images");
+  const out = {app:"ankaufsbuch", v:1, exported:new Date().toISOString(),
+    meta:S.meta, purchases:S.purchases, items:S.items, expenses:S.expenses, images:[]};
+  for(const im of imgs) out.images.push({id:im.id, purchaseId:im.purchaseId, data:await blobToB64(im.blob)});
+  download(`ankaufsbuch-sicherung-${today()}.json`, new Blob([JSON.stringify(out)],{type:"application/json"}));
+  S.meta.lastBackup = Date.now(); await put("meta",{id:"stamm", ...S.meta});
+  render(); toast("Sicherung erstellt");
+}
+async function restore(file){
+  try{
+    const d = JSON.parse(await file.text());
+    if(d.app!=="ankaufsbuch") throw 0;
+    let n = 0;
+    for(const p of d.purchases||[]) if(!S.purchases.some(x=>x.id===p.id)){ await put("purchases",p); n++; }
+    for(const i of d.items||[]) if(!S.items.some(x=>x.id===i.id)) await put("items",i);
+    for(const e of d.expenses||[]) if(!S.expenses.some(x=>x.id===e.id)) await put("expenses",e);
+    for(const im of d.images||[]) if(!await getOne("images",im.id)) await put("images",{id:im.id, purchaseId:im.purchaseId, blob:b64ToBlob(im.data)});
+    if(d.meta && !S.meta.name){ S.meta = {...d.meta, lastBackup:S.meta.lastBackup}; await put("meta",{id:"stamm",...S.meta}); }
+    await reload(); toast(`${n} Belege ergänzt`);
+  }catch(e){ toast("Datei nicht lesbar"); }
+}
+function csv(){
+  const q = s => `"${String(s??"").replace(/"/g,'""')}"`;
+  const L = [];
+  L.push("ANKAEUFE");
+  L.push(["Beleg","Datum","Kaufpreis","Zahlart","Verkäufer","Straße","PLZ Ort","Nutzername","Gefunden über","Belegqualität","Storno","Notiz"].map(q).join(";"));
+  S.purchases.filter(p=>inYear(p,S.year)).sort((a,b)=>a.beleg-b.beleg).forEach(p=>
+    L.push([`EB-${p.year}-${String(p.beleg).padStart(4,"0")}`,p.datum,num(p.betrag).toFixed(2).replace(".",","),ZAHLART[p.zahlart],p.vName,p.vStr,p.vPlz,p.vNick,p.plattform,QUALTXT[belegQual(p)],p.storno?"ja":"",p.notiz].map(q).join(";")));
+  L.push("","POSITIONEN");
+  L.push(["Beleg","Position","Einkauf","Verkaufsdatum","Plattform","Verkauf","Gebühren","Porto","Verpackung","Differenz 25a"].map(q).join(";"));
+  yearItems().forEach(i=>{
+    const p = S.purchases.find(x=>x.id===i.purchaseId)||{}; const s = i.sale||{};
+    L.push([`EB-${p.year}-${String(p.beleg||0).padStart(4,"0")}`,i.bez,num(i.ek).toFixed(2).replace(".",","),s.datum||"",s.plattform||"",
+      s.vk?num(s.vk).toFixed(2).replace(".",","):"",s.gebuehren?num(s.gebuehren).toFixed(2).replace(".",","):"",
+      s.porto?num(s.porto).toFixed(2).replace(".",","):"",s.verpackung?num(s.verpackung).toFixed(2).replace(".",","):"",
+      s.vk?(num(s.vk)-num(i.ek)).toFixed(2).replace(".",","):""].map(q).join(";"));
+  });
+  L.push("","KOSTEN");
+  L.push(["Datum","Art","Betrag","km","Notiz"].map(q).join(";"));
+  S.expenses.filter(e=>inYear(e,S.year)).sort((a,b)=>a.datum<b.datum?-1:1).forEach(e=>
+    L.push([e.datum,KAT[e.kat],num(e.betrag).toFixed(2).replace(".",","),e.km||"",e.notiz].map(q).join(";")));
+  download(`ankaufsbuch-${S.year}.csv`, new Blob(["\ufeff"+L.join("\n")],{type:"text/csv;charset=utf-8"}));
+  toast("CSV erstellt");
+}
+
+/* ---------------- Druckausgaben ---------------- */
+function phead(t,s){
+  const m = S.meta;
+  const lg = logoJetzt();
+  const logo = lg ? `<img src="${lg}" alt="" style="max-height:16mm;max-width:52mm;object-fit:contain;float:right;margin-left:6mm">` : "";
+  return `<div class="phd">${logo}<h1>${t}</h1><div class="sub">${esc(m.name||"—")}${m.firma?" · "+esc(m.firma):""}${m.stnr?" · St.-Nr. "+esc(m.stnr):""}<br>Geschäftsjahr ${S.year}${s?" · "+s:""} · erstellt am ${new Date().toLocaleDateString("de-DE")}${m.marke?"<br>"+esc(m.marke):""}</div><div style="clear:both"></div></div>`;
+}
+function pJournal(){
+  const ps = S.purchases.filter(p=>inYear(p,S.year)).sort((a,b)=>a.beleg-b.beleg);
+  const sum = ps.filter(p=>!p.storno).reduce((a,p)=>a+num(p.betrag),0);
+  return `<div class="page">${phead("Ankaufsjournal","Wareneinkauf von Privat")}
+  <table class="ptbl"><thead><tr><th>Beleg</th><th>Datum</th><th>Gegenstand</th><th>Verkäufer</th><th>Zahlart</th><th>Nachweis</th><th style="text-align:right">Betrag</th></tr></thead><tbody>
+  ${ps.map(p=>`<tr${p.storno?' style="color:#888"':''}><td class="mono">${String(p.beleg).padStart(4,"0")}</td><td>${dstr(p.datum)}</td>
+    <td>${esc(p.bez||"—")}${p.storno?" <b>(storniert)</b>":""}</td>
+    <td>${esc([p.vName,p.vPlz].filter(Boolean).join(", ")||p.vNick||"—")}</td>
+    <td>${ZAHLART[p.zahlart]||"—"}</td><td>${QUALTXT[belegQual(p)]}</td>
+    <td class="n">${p.storno?"—":num(p.betrag).toFixed(2).replace(".",",")}</td></tr>`).join("")}
+  </tbody></table>
+  <div class="ptot">Wareneinkauf ${S.year}: ${eur(sum)}</div>
+  <p class="pnote">Fortlaufende Belegnummern EB-${S.year}-0001 bis EB-${S.year}-${String(ps.length?ps[ps.length-1].beleg:0).padStart(4,"0")}, ohne Lücken. Stornierte Belege bleiben in der Nummernfolge und gehen nicht in die Summe ein.</p></div>`;
+}
+function pBelege(){
+  const m = S.meta;
+  return S.purchases.filter(p=>inYear(p,S.year)).sort((a,b)=>a.beleg-b.beleg).map(p=>{
+    const its = S.items.filter(i=>i.purchaseId===p.id);
+    const shots = (p.shots||[]).map(s=>{ const rec = S.imgCache?.[s.id]; return rec?`<figure><img src="${rec}"><figcaption>${SHOT[s.kind]}</figcaption></figure>`:""; }).join("");
+    return `<div class="page">${phead("Eigenbeleg","Beleg EB-"+p.year+"-"+String(p.beleg).padStart(4,"0"))}
+    ${p.storno?'<div class="ebox" style="border-width:2pt"><b>STORNIERT — dieser Beleg ist gegenstandslos.</b></div>':""}
+    <div class="ebox"><div class="egrid">
+      <div class="k">Belegnummer</div><div class="mono"><b>EB-${p.year}-${String(p.beleg).padStart(4,"0")}</b></div>
+      <div class="k">Kaufdatum</div><div>${dstr(p.datum)}</div>
+      <div class="k">Gegenstand</div><div>${its.length>1?its.map((i,x)=>`${x+1}. ${esc(i.bez)} — ${eur(i.ek)}`).join("<br>"):esc(its[0]?.bez||p.bez||"—")}</div>
+      <div class="k">Betrag</div><div class="mono"><b>${eur(p.betrag)}</b></div>
+      <div class="k">Zahlart</div><div>${ZAHLART[p.zahlart]||"—"}</div>
+      <div class="k">Empfänger</div><div>${esc(p.vName||"— nicht erfasst —")}<br>${esc(p.vStr||"")}<br>${esc(p.vPlz||"")}${p.vNick?"<br>Nutzername: "+esc(p.vNick):""}</div>
+      <div class="k">Erworben über</div><div>${esc(p.plattform||"—")}${p.vMarkt?"<br>"+esc(p.vMarkt):""}${p.vStand?", "+esc(p.vStand):""}${p.sammel?"<br>Sammelankauf über mehrere Stände":""}</div>
+      <div class="k">Grund des Eigenbelegs</div><div>Kauf von einer Privatperson; der Verkäufer stellt keine Rechnung und keine Quittung aus.</div>
+      <div class="k">Vorsteuer</div><div>Kein Vorsteuerabzug — Erwerb von einer Privatperson.</div>
+      ${p.notiz?`<div class="k">Notiz</div><div>${esc(p.notiz)}</div>`:""}
+      <div class="k">Aussteller</div><div>${esc(m.name||"—")}${m.strasse?", "+esc(m.strasse):""}${m.plzOrt?", "+esc(m.plzOrt):""}</div>
+      <div class="k">Ausgestellt am</div><div>${new Date().toLocaleDateString("de-DE")}</div>
+    </div>
+    <div class="esig"><div>Unterschrift Aussteller</div><div>Unterschrift Verkäufer (falls erreichbar)</div></div></div>
+    ${shots?`<div class="pimgs">${shots}</div>`:'<p class="pnote">Keine Bildnachweise hinterlegt.</p>'}
+    </div>`;
+  }).join("");
+}
+function pMarge(){
+  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year));
+  const eSum = sold.reduce((a,i)=>a+num(i.ek),0), vSum = sold.reduce((a,i)=>a+num(i.sale.vk),0);
+  const unter = sold.filter(i=>num(i.ek)<=750);
+  return `<div class="page">${phead("Aufstellung nach § 25a UStG","Einzeldifferenz je Gegenstand")}
+  <table class="ptbl"><thead><tr><th>Beleg</th><th>Gegenstand</th><th>Verkauft am</th><th>Plattform</th><th style="text-align:right">Einkauf</th><th style="text-align:right">Verkauf</th><th style="text-align:right">Differenz</th></tr></thead><tbody>
+  ${sold.map(i=>{const p=S.purchases.find(x=>x.id===i.purchaseId)||{};return `<tr><td class="mono">${String(p.beleg||0).padStart(4,"0")}</td><td>${esc(i.bez)}</td><td>${dstr(i.sale.datum)}</td><td>${esc(i.sale.plattform||"")}</td>
+    <td class="n">${num(i.ek).toFixed(2).replace(".",",")}</td><td class="n">${num(i.sale.vk).toFixed(2).replace(".",",")}</td>
+    <td class="n">${(num(i.sale.vk)-num(i.ek)).toFixed(2).replace(".",",")}</td></tr>`;}).join("")}
+  </tbody></table>
+  <div class="ptot">Summe Einkauf ${eur(eSum)} · Summe Verkauf ${eur(vSum)} · Gesamtdifferenz ${eur(vSum-eSum)}</div>
+  <p class="pnote">Erstellt als Vorsorge. Aktuell wird die Kleinunternehmerregelung nach § 19 UStG angewandt, Umsatzsteuer wird nicht ausgewiesen.<br>
+  Die Besteuerung nach der Gesamtdifferenz setzt voraus, dass der Einkaufspreis je Gegenstand 750 € nicht übersteigt (§ 25a Abs. 4 S. 2 UStG, seit 1.1.2025). Davon erfüllen ${unter.length} von ${sold.length} Positionen die Voraussetzung.</p></div>`;
+}
+function pLager(){
+  const l = yearItems().filter(i=>!i.sale);
+  return `<div class="page">${phead("Lagerliste zum 31.12."+S.year,"Nicht verkaufte Ware")}
+  <table class="ptbl"><thead><tr><th>Beleg</th><th>Angekauft</th><th>Gegenstand</th><th style="text-align:right">Einkaufswert</th></tr></thead><tbody>
+  ${l.map(i=>{const p=S.purchases.find(x=>x.id===i.purchaseId)||{};return `<tr><td class="mono">${String(p.beleg||0).padStart(4,"0")}</td><td>${dstr(p.datum)}</td><td>${esc(i.bez)}</td><td class="n">${num(i.ek).toFixed(2).replace(".",",")}</td></tr>`;}).join("")}
+  </tbody></table><div class="ptot">Lagerwert: ${eur(l.reduce((a,i)=>a+num(i.ek),0))} · ${l.length} Positionen</div></div>`;
+}
+function pKosten(){
+  const es = S.expenses.filter(e=>inYear(e,S.year)).sort((a,b)=>a.datum<b.datum?-1:1);
+  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year));
+  const geb = sold.reduce((a,i)=>a+num(i.sale.gebuehren),0), por = sold.reduce((a,i)=>a+num(i.sale.porto),0), ver = sold.reduce((a,i)=>a+num(i.sale.verpackung),0);
+  const sum = es.reduce((a,e)=>a+num(e.betrag),0);
+  return `<div class="page">${phead("Kostenaufstellung","Betriebsausgaben neben dem Wareneinkauf")}
+  <table class="ptbl"><thead><tr><th>Datum</th><th>Art</th><th>Notiz</th><th style="text-align:right">km</th><th style="text-align:right">Betrag</th></tr></thead><tbody>
+  ${es.map(e=>`<tr><td>${dstr(e.datum)}</td><td>${KAT[e.kat]||e.kat}</td><td>${esc(e.notiz||"")}</td><td class="n">${e.km||""}</td><td class="n">${num(e.betrag).toFixed(2).replace(".",",")}</td></tr>`).join("")}
+  </tbody></table>
+  <h3 class="psec">Aus Verkäufen gebucht</h3>
+  <table class="ptbl"><tbody>
+    <tr><td>Plattformgebühren</td><td class="n">${geb.toFixed(2).replace(".",",")}</td></tr>
+    <tr><td>Porto</td><td class="n">${por.toFixed(2).replace(".",",")}</td></tr>
+    <tr><td>Verpackung</td><td class="n">${ver.toFixed(2).replace(".",",")}</td></tr>
+  </tbody></table>
+  <div class="ptot">Kosten gesamt: ${eur(sum+geb+por+ver)}</div>
+  <p class="pnote">Fahrtkosten mit ${KM_SATZ.toFixed(2).replace(".",",")} € je gefahrenem Kilometer angesetzt.</p></div>`;
+}
+function pVerfahren(){
+  const m = S.meta;
+  return `<div class="page">${phead("Verfahrensdokumentation","Führung des Ankaufsbuchs")}
+  <div class="ptext">
+  <h3 class="psec">1. Gegenstand</h3>
+  <p>${esc(m.name||"—")}${m.firma?", "+esc(m.firma):""} kauft gebrauchte Waren überwiegend von Privatpersonen an und verkauft sie über Online-Plattformen weiter. Da Privatverkäufer keine Rechnung und regelmäßig keine Quittung ausstellen, wird für jeden Ankauf ein Eigenbeleg erstellt.</p>
+  <h3 class="psec">2. Erfassung</h3>
+  <ul>
+    <li>Jeder Ankauf wird zeitnah am Kauftag erfasst, in einer lokalen Anwendung auf einem mobilen Endgerät.</li>
+    <li>Erfasst werden: Kaufdatum, Kaufpreis, Zahlart, Name und Anschrift des Zahlungsempfängers, Nutzername der Plattform, Herkunft des Angebots, Bezeichnung des Gegenstands sowie eine Notiz.</li>
+    <li>Als Nachweis werden Fotos der Ware sowie Bildschirmfotos der Anzeige, des Nachrichtenverlaufs und des Zahlungsnachweises hinterlegt.</li>
+    <li>Konvolute werden in Einzelpositionen zerlegt; der Kaufpreis wird im Wege sachgerechter Schätzung auf die Positionen verteilt.</li>
+  </ul>
+  <h3 class="psec">3. Belegnummern</h3>
+  <p>Belege tragen fortlaufende Nummern im Format EB-JJJJ-NNNN, je Geschäftsjahr bei 0001 beginnend, ohne Lücken. Ein Beleg wird nie gelöscht. Fehlerhafte Belege werden als storniert gekennzeichnet, bleiben in der Nummernfolge und werden mit dem Vermerk „storniert“ ausgegeben.</p>
+  <h3 class="psec">4. Verkauf</h3>
+  <p>Jede Position wird mit ihrem Verkauf verknüpft: Verkaufsdatum, Plattform, Verkaufspreis brutto, Gebühren, Porto und Verpackung. Daraus ergibt sich die Differenz zwischen Verkaufs- und Einkaufspreis je Gegenstand.</p>
+  <h3 class="psec">5. Umsatzsteuer</h3>
+  <p>Es wird die Kleinunternehmerregelung nach § 19 UStG angewandt. Umsatzsteuer wird nicht ausgewiesen. Aus Ankäufen von Privatpersonen besteht kein Vorsteuerabzug. Einkaufspreis, Verkaufspreis und Differenz werden je Gegenstand getrennt aufgezeichnet, damit die Aufzeichnungspflichten des § 25a Abs. 6 UStG bei einem Wechsel zur Regelbesteuerung ohne Nacharbeit erfüllt sind.</p>
+  <h3 class="psec">6. Aufbewahrung und Sicherung</h3>
+  <p>Die Daten liegen auf dem Endgerät. In regelmäßigen Abständen wird eine vollständige Sicherungsdatei einschließlich aller Bildnachweise erzeugt und in einem Cloud-Speicher abgelegt. Zum Jahresabschluss werden Ankaufsjournal, Eigenbelege, Aufstellung nach § 25a, Lagerliste und Kostenaufstellung als PDF erzeugt und unveränderbar archiviert. Buchungsbelege werden acht Jahre aufbewahrt, gerechnet ab dem Schluss des Kalenderjahres ihrer Entstehung (§ 147 AO in der ab 1.1.2025 geltenden Fassung).</p>
+  <h3 class="psec">7. Änderungen</h3>
+  <p>Nachträgliche Korrekturen an einem bereits abgeschlossenen Geschäftsjahr erfolgen nicht am Ursprungsbeleg, sondern durch Storno und Neuerfassung.</p>
+  <p style="margin-top:8mm">Stand: ${new Date().toLocaleDateString("de-DE")}</p>
+  <div class="esig" style="grid-template-columns:1fr"><div>Unterschrift</div></div>
+  </div></div>`;
+}
+function pBlanko(){
+  const m = S.meta;
+  const box = ()=>`<div style="border:1pt solid #000;padding:4mm;height:62mm;box-sizing:border-box">
+    <div style="font-size:11pt;font-weight:700;letter-spacing:.08em">ANKAUFBELEG</div>
+    <div style="font-size:7pt;color:#444;border-bottom:.5pt solid #000;padding-bottom:1.5mm;margin-bottom:2.5mm">
+      ${esc(m.name||"")}${m.firma?" · "+esc(m.firma):""}${m.stnr?" · St.-Nr. "+esc(m.stnr):""}</div>
+    <div style="font-size:8pt;line-height:2.6">
+      Datum _____________________  Ort ________________________<br>
+      Gegenstand ______________________________________________<br>
+      ________________________________________________________<br>
+      Betrag _______________ €   in bar erhalten<br>
+      Verkäufer, Name ________________________________________<br>
+      Anschrift ______________________________________________
+    </div>
+    <div style="display:flex;gap:6mm;margin-top:6mm">
+      <div style="flex:1;border-top:.5pt solid #000;font-size:6.5pt;color:#444;padding-top:1mm">Unterschrift Verkäufer</div>
+      <div style="flex:1;border-top:.5pt solid #000;font-size:6.5pt;color:#444;padding-top:1mm">Unterschrift Käufer</div>
+    </div></div>`;
+  return `<div class="page">${phead("Ankaufbelege zum Mitnehmen","Ausdrucken, falten, in die Tasche")}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm">${box()}${box()}${box()}${box()}</div>
+    <p class="pnote">Am Stand ausfüllen und unterschreiben lassen, danach abfotografieren und beim Ankauf als Nachweis anhängen.</p></div>`;
+}
+const KINDNAME = {journal:"Ankaufsjournal", belege:"Eigenbelege", marge:"Marge-nach-25a", lager:"Lagerliste",
+  kosten:"Kosten", verfahren:"Verfahrensdokumentation", blanko:"Ankaufbelege-blanko", alles:"Komplettpaket"};
+
+const REPORT_CSS = `
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#f2f2ef;color:#000;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:11pt}
+.page{background:#fff;max-width:196mm;margin:0 auto 16px;padding:14mm;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.mono,.n{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+.ptbl{width:100%;border-collapse:collapse;font-size:9pt}
+.ptbl th,.ptbl td{border:.5pt solid #999;padding:3pt 4pt;text-align:left;vertical-align:top}
+.ptbl th{background:#eee;font-size:8pt;text-transform:uppercase;letter-spacing:.05em}
+.ptbl td.n{text-align:right}
+.phd{border-bottom:1.5pt solid #000;padding-bottom:4mm;margin-bottom:5mm}
+.phd h1{font-size:15pt;margin:0 0 1mm}
+.phd .sub{font-size:9pt;color:#444}
+.ebox{border:1pt solid #000;padding:5mm;margin-bottom:5mm}
+.egrid{display:grid;grid-template-columns:38mm 1fr;gap:1.5mm 4mm;font-size:10pt}
+.egrid .k{color:#444;font-size:8.5pt;text-transform:uppercase;letter-spacing:.05em;padding-top:.6mm}
+.esig{margin-top:12mm;display:grid;grid-template-columns:1fr 1fr;gap:10mm}
+.esig div{border-top:.5pt solid #000;padding-top:1.5mm;font-size:8pt;color:#444}
+.pimgs{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-top:4mm}
+.pimgs figure{margin:0}
+.pimgs img{width:100%;max-height:80mm;object-fit:contain;border:.5pt solid #999}
+.pimgs figcaption{font-size:7.5pt;color:#444;text-transform:uppercase;letter-spacing:.05em;padding-top:1mm}
+.pnote{font-size:8pt;color:#444;margin-top:3mm;line-height:1.4}
+.ptot{margin-top:4mm;font-size:10pt;font-weight:700;text-align:right;font-family:ui-monospace,Menlo,monospace}
+h3.psec{font-size:11pt;margin:6mm 0 2mm;border-bottom:.5pt solid #000;padding-bottom:1mm}
+.ptext{font-size:9.5pt;line-height:1.5}
+.ptext li{margin-bottom:1.5mm}
+.hinweis{max-width:196mm;margin:0 auto 16px;background:#fff;border:1px solid #ccc;border-left:4px solid #C42B1C;
+  padding:12px 14px;font-size:10pt;line-height:1.5}
+@media print{
+  body{background:#fff;padding:0}
+  .hinweis{display:none}
+  .page{max-width:none;margin:0;padding:0 0 8mm;box-shadow:none;page-break-after:always}
+  .page:last-child{page-break-after:auto}
+  @page{size:A4;margin:14mm}
+}`;
+
+/* Bilder für den Bericht kleiner rechnen — sonst wird die Datei unhandlich */
+function shrinkForReport(blob){
+  return new Promise(res=>{
+    const url = URL.createObjectURL(blob), img = new Image();
+    img.onload = ()=>{
+      const max = 1000, sc = Math.min(1, max/Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL("image/jpeg", 0.62));
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); res(null); };
+    img.src = url;
+  });
+}
+async function cacheImages(onStep){
+  S.imgCache = {};
+  const imgs = await all("images");
+  for(let i=0;i<imgs.length;i++){
+    const d = await shrinkForReport(imgs[i].blob);
+    if(d) S.imgCache[imgs[i].id] = d;
+    if(onStep) onStep(i+1, imgs.length);
+    await new Promise(r=>setTimeout(r,0)); // Oberfläche atmen lassen
+  }
+}
+const istApp = ()=> window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+
+async function buildReport(kind, onStep){
+  const braucht = kind==="belege" || kind==="alles";
+  if(braucht) await cacheImages(onStep); else S.imgCache = S.imgCache || {};
+  const parts = {journal:pJournal, belege:pBelege, marge:pMarge, lager:pLager, kosten:pKosten, verfahren:pVerfahren, blanko:pBlanko};
+  const inhalt = kind==="alles"
+    ? [pJournal(),pBelege(),pMarge(),pLager(),pKosten(),pVerfahren()].join("")
+    : parts[kind]();
+  const titel = `${KINDNAME[kind]||"Bericht"} ${S.year}`;
+  const doc = `<!DOCTYPE html><html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(titel)}</title><style>${REPORT_CSS}</style></head><body>${inhalt}</body></html>`;
+  return {inhalt, doc, titel, name:`${S.year}-${(KINDNAME[kind]||"bericht").toLowerCase()}.html`};
+}
+
+async function doPrint(kind){
+  const braucht = kind==="belege" || kind==="alles";
+  openSheet2(KINDNAME[kind]||"Bericht", `
+    <p style="font-size:15px;font-weight:600;margin:0 0 4px">Bericht wird erstellt …</p>
+    <p class="hint" id="pgSub">${braucht?"Bilder werden aufbereitet.":"Einen Moment."}</p>
+    <div class="prog"><i id="pgBar"></i></div>`, null);
+  const bar = document.getElementById("pgBar"), sub = document.getElementById("pgSub");
+  try{
+    const r = await buildReport(kind, (i,n)=>{
+      if(bar) bar.style.width = Math.round(i/Math.max(n,1)*90)+"%";
+      if(sub) sub.textContent = `Bild ${i} von ${n}`;
+    });
+    if(bar) bar.style.width = "100%";
+    await new Promise(x=>setTimeout(x,60));
+    const kb = Math.round(new Blob([r.doc]).size/1024);
+    document.getElementById("sh2Body").innerHTML = `
+      <div class="banner info"><b>${esc(r.titel)}</b> ist fertig · ${kb} KB</div>
+      <button class="btn" id="pgPrev">Vorschau ansehen</button>
+      <button class="btn ghost" id="pgSave">Als Datei sichern</button>
+      <button class="btn ghost" id="pgPrint">Drucken</button>
+      <p class="hint" style="margin-top:14px">${istApp()
+        ? "Gesicherte Dateien landen in der Dateien-App unter Downloads. Von dort: antippen, Teilen, Drucken, im Druckdialog nochmal Teilen, In Dateien sichern — das ist dein PDF."
+        : "Beim Drucken im Dialog „Als PDF sichern“ wählen."}</p>
+      <div id="pgFrame" style="margin-top:14px"></div>`;
+    document.getElementById("pgSave").onclick = ()=>{
+      download(r.name, new Blob([r.doc],{type:"text/html;charset=utf-8"})); toast("Datei gesichert");
+    };
+    document.getElementById("pgPrev").onclick = ()=>{
+      const f = document.getElementById("pgFrame");
+      if(f.firstChild){ f.innerHTML = ""; document.getElementById("pgPrev").textContent = "Vorschau ansehen"; return; }
+      const ifr = document.createElement("iframe");
+      ifr.style.cssText = "width:100%;height:72vh;border:1px solid var(--rule);border-radius:8px;background:#fff";
+      ifr.srcdoc = r.doc;
+      f.appendChild(ifr);
+      document.getElementById("pgPrev").textContent = "Vorschau schließen";
+      setTimeout(()=>ifr.scrollIntoView({behavior:"smooth",block:"start"}), 80);
+    };
+    document.getElementById("pgPrint").onclick = ()=>{
+      if(istApp()){
+        download(r.name, new Blob([r.doc],{type:"text/html;charset=utf-8"}));
+        toast("Datei gesichert — von dort drucken");
+        return;
+      }
+      document.getElementById("print").innerHTML = r.inhalt;
+      setTimeout(()=>window.print(), 250);
+    };
+  }catch(err){
+    document.getElementById("sh2Body").innerHTML =
+      `<div class="banner bad"><b>Das hat nicht geklappt.</b> ${esc(String(err && err.message || err))}</div>
+       <button class="btn ghost" id="pgClose2">Schließen</button>`;
+    document.getElementById("pgClose2").onclick = closeSheet2;
+  }
+}
+
+/* ---------------- Verdrahtung ---------------- */
+document.querySelectorAll("nav button").forEach(b=> b.onclick = ()=>show(b.dataset.v));
+document.getElementById("fab").onclick = ()=>openPurchase(null);
+document.getElementById("shCancel").onclick = closeSheet;
+document.getElementById("sh2Cancel").onclick = closeSheet2;
+document.getElementById("sh2Save").onclick = ()=>{ const f = document.getElementById("sheet2")._save; if(f) f(); };
+document.getElementById("storeBtn").onclick = openStorage;
+document.getElementById("buyMode").onclick = e=>{
+  const b = e.target.closest("[data-mode]"); if(!b) return;
+  S.buyMode = b.dataset.mode; renderBuys();
+};
+document.getElementById("vClose").onclick = ()=> document.getElementById("viewer").classList.remove("on");
+document.getElementById("viewer").onclick = e=>{ if(e.target.id==="viewer"||e.target.classList.contains("vimg")) document.getElementById("viewer").classList.remove("on"); };
+document.getElementById("shSave").onclick = ()=>{ const f = document.getElementById("sheet")._save; if(f) f(); };
+document.getElementById("stockFilter").onchange = renderStock;
+document.getElementById("addCost").onclick = ()=>openCost(null);
+document.getElementById("runBtn").onclick = ()=>openRunde(null);
+document.getElementById("yearSel").onchange = e=>{ S.year = parseInt(e.target.value,10); render(); };
+
+document.addEventListener("click", e=>{
+  const gv = e.target.closest("[data-view]");
+  if(gv){
+    const img = gv.querySelector("img");
+    document.getElementById("vImg").src = img ? img.src : "";
+    document.getElementById("vTitle").textContent = gv.dataset.kind || "";
+    document.getElementById("viewer").classList.add("on");
+    return;
+  }
+  const ha = e.target.closest("[data-home]");
+  if(ha){
+    const a = ha.dataset.home;
+    if(a==="markttag") return openMarkttag();
+    if(a==="backup") return backup();
+    if(a==="runde") return openRunde(null);
+    if(a==="papierkorb") return openPapierkorb();
+    if(a==="langsteher"){ S.stockFilterWunsch="lager"; show("stock"); return; }
+    if(a==="schwach"){ S.buyMode="liste"; show("buy"); return; }
+  }
+  const o = e.target.closest("[data-open]"); if(o) return openPurchase(o.dataset.open);
+  const it = e.target.closest("[data-item]"); if(it) return openItem(it.dataset.item);
+  const c = e.target.closest("[data-cost]"); if(c) return openCost(c.dataset.cost);
+  const pr = e.target.closest("[data-print]"); if(pr) return doPrint(pr.dataset.print);
+  const a = e.target.closest("[data-act]");
+  if(a){
+    if(a.dataset.act==="backup") return backup();
+    if(a.dataset.act==="restore") return document.getElementById("jsonPick").click();
+    if(a.dataset.act==="csv") return csv();
+    if(a.dataset.act==="stamm") return openStamm();
+    if(a.dataset.act==="papierkorb") return openPapierkorb();
+  }
+  const add = e.target.closest("[data-addshot]");
+  if(add){ const fp = document.getElementById("filePick"); fp.dataset.kind = add.dataset.addshot; fp.value=""; fp.click(); return; }
+  const rm = e.target.closest("[data-rmshot]");
+  if(rm){ S.draft.shots = S.draft.shots.filter(s=>s.id!==rm.dataset.rmshot); renderShots(); return; }
+});
+document.getElementById("filePick").onchange = async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  if(e.target.dataset.kind === "__logo"){
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = async ()=>{
+      const sc = Math.min(1, 420/Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+      const cx = c.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0,0,c.width,c.height);
+      cx.drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      S.meta.logo = c.toDataURL("image/png");
+      await put("meta",{id:"stamm", ...S.meta});
+      if(S._logoRefresh) S._logoRefresh();
+      toast("Logo gesichert");
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); toast("Bild nicht lesbar"); };
+    img.src = url;
+    return;
+  }
+  if(!S.draft) return;
+  toast("Bild wird verkleinert …");
+  const blob = await compress(f);
+  S.draft.shots.push({id:uid(), kind:e.target.dataset.kind, blob});
+  renderShots(); toast("Nachweis hinzugefügt");
+};
+document.getElementById("jsonPick").onchange = e=>{ const f=e.target.files[0]; if(f) restore(f); e.target.value=""; };
+
+/* ---------------- Start ---------------- */
+async function reload(){
+  S.purchases = await all("purchases");
+  S.items = await all("items");
+  S.expenses = await all("expenses");
+  const m = await all("meta");
+  S.meta = m.find(x=>x.id==="stamm") || {};
+  if(!S._aufgeraeumt){ S._aufgeraeumt = true; await papierkorbAufraeumen(); S.purchases = await all("purchases"); }
+  const jetzt = new Date().getFullYear();
+  const daten = [...S.purchases.map(p=>p.year), ...S.expenses.map(e=>e.year)].filter(Boolean);
+  const von = Math.min(jetzt-1, S.year, ...(daten.length?daten:[jetzt]));
+  const bis = Math.max(jetzt+2, S.year, ...(daten.length?daten:[jetzt]));
+  const ys = []; for(let y=bis; y>=von; y--) ys.push(y);
+  document.getElementById("yearSel").innerHTML = ys.map(y=>`<option value="${y}" ${y===S.year?"selected":""}>${y}</option>`).join("");
+  render();
+}
+(async ()=>{
+  await openDB();
+  // Speicher als dauerhaft anmelden, damit iOS ihn nicht aufräumt
+  try{ if(navigator.storage && navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
+  await reload();
+})();
+// Offline-Cache: einmal geladen, läuft die App auch ohne Netz
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+window.addEventListener("beforeprint", ()=>{});
+window.addEventListener("afterprint", ()=>{ document.getElementById("print").innerHTML=""; });
+</script>
+</body>
+</html>
