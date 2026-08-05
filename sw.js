@@ -1,7 +1,7 @@
 /* Ankaufsbuch — Offline-Cache.
    Programmdateien werden zuerst frisch geholt und nur bei fehlendem Netz
    aus dem Cache bedient. Deine Daten liegen NICHT hier, sondern in IndexedDB. */
-const CACHE = "ankaufsbuch-v12";
+const CACHE = "ankaufsbuch-v13";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
