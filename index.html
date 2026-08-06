@@ -207,6 +207,14 @@ details.fold summary::after{content:"▾";float:right;color:var(--ink-3)}
 details.fold[open] summary{border-bottom:1px solid var(--rule-2)}
 details.fold .fb{padding:13px}
 /* ---------- Umschalter, Galerie, Betrachter ---------- */
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mbtn{padding:12px 6px;border:1px solid var(--rule);border-radius:8px;background:var(--card);
+  font-size:13.5px;font-weight:650;text-align:center;line-height:1.25}
+.mbtn small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--ink-3);margin-top:3px}
+.mbtn.hat{border-color:var(--stamp);color:var(--stamp)}
+.mbtn.hat small{color:var(--stamp);opacity:.8}
+.mbtn.leer{opacity:.4}
+.mbtn:active{background:var(--rule-2)}
 .seg{display:flex;gap:2px;background:var(--rule-2);border:1px solid var(--rule);border-radius:8px;padding:2px;margin-bottom:12px}
 .seg button{flex:1;padding:8px;border-radius:6px;font-size:13.5px;font-weight:650;color:var(--ink-2)}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(27,36,48,.1)}
@@ -333,7 +341,9 @@ details.fold .fb{padding:13px}
   <!-- ABSCHLUSS -->
   <section class="view" id="v-out">
     <div id="outBanner"></div>
-    <h2>Drucken &amp; als PDF sichern</h2>
+    <h2>Monatspakete</h2>
+    <div class="card pad" id="monatsRaster"></div>
+    <h2>Einzelne Berichte</h2>
     <div class="card" id="printRows"></div>
     <h2>Daten</h2>
     <div class="card" id="dataRows"></div>
@@ -396,8 +406,9 @@ const KAT = {
 const ZAHLART = {ueberweisung:"Überweisung", paypal:"PayPal", bar:"Bar", keine:"Keine Zahlung (geschenkt)", sonst:"Sonstiges"};
 const PLATTFORM = ["Kleinanzeigen","eBay","Flohmarkt","Privat direkt","Haushaltsauflösung","Geschenk / Einlage","Sonstige"];
 const VK_PLATTFORM = ["Whatnot","eBay","Kleinanzeigen","Vinted","Direkt","Sonstige"];
+const KSHOT = {rechnung:"Rechnung oder Beleg"};
 const SHOT = {ware:"Foto der Ware", anzeige:"Anzeige", chat:"Chatverlauf", zahlung:"Zahlungsnachweis", eigenbeleg:"Eigenbeleg unterschrieben"};
-const APP_VERSION = "v18";
+const APP_VERSION = "v21";
 const KM_SATZ = 0.30;
 /* Voreingestelltes Logo — in den Stammdaten austauschbar */
 const LOGO_STANDARD = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAFoAgMAAAAHi4lGAAAADFBMVEX+/v7+/f79/f1VIyWxAL3nAAA5P0lEQVR42u29f3Bc13Xn+XlXD62LF0Z+ZCC6RSvURRvWtBBXrEzNxpqUIl1gaBWtyTqQRlZor1ZuM4pDq3YdTtalMLYMHXQgpQW54rZKkRltIj8xHAeGpmJW1pV4MrbY1mpStLcqpZlKMViXQj0hGgVhtHKLI0OPYPO9/ePe97pJYFP+I1s1f7j/YBHdjYvT956f3/M9t4OC/78eih8t/aOlf7T0fx9LUxRFLv/kq36tKIqggFe++0++9MffclIvEQfumQAwEFqALkiMshBiLSoElB5Dh+6NjN2FQAhAbA2EMIsJQ4JjRVFQFIWJBMYZ6+6qxwYTBxDHMQQEGmZiAj1DOEeTmDA0+2Mg6GImJsDQBKzSTrYYQjQcOlkUFEU+pcA4eSdMCLLPiRJASDATxxJaxgAstBc0xHMAD9NtgsGgILZjtwM1QEKm/dILivEJvyMhTYWOMYgAEWAEo0EZJYAaD2Pq4JbREFkvmZ4NoW0swJ5bi0JBzjzFDrAYimtJc7J+E4Cm3kCDoI5AvpYvgfD2L/RVXwFqU4cads/mTVCQPZfDvE4BDjnlG1Ty0a0DHRGaAE00RquEppFL7UCjBQWP7kqg3Z1CQ5O2gCFhWmJ1a1FQFAOxiIq4+glt0SAKwyxgdBCDqLFEgVZM+T9gMGC1nks+qFYAG1umDYBRCRiYqpYGTYOJiWmUIIBpulWubhkx3AcxII9UatuBLyrNjJkJwWAMYxYdAw2tQdjjl14ExIjYXU84oVBaiQJhbAUThAZ1LBFBiYmARNASo8c+MDcTWYBYx02uxnTcZxIqqRXQYAK1f2hPBoCpaYyiS3vBeDsJaSOAkvARq0IsHWJEGWIDqDYIROXShiYEQRAbaIIGDBojYMRATSmZVYCOCBVK0NJW6pmOwiwr9yctsRYApWkHw73WER0QYjRAIsYALKNIQJZoxhgNGGUqHTFGFBOQIGC4WmkUYGiINKqllxLdNlhqVmgrWPR7IpAkHLNgMDoBArXiNFARwCJTgBI0SkJJADpGw4iG+EdCopTShAgaUcoAEbs0psMzi03FR2LVbGpBJ8e0kv3saqONYOLANuYQNEzfALWhhmhAYRMLSIISoo4WbyKirWnC1DSoGEWzPOUW4ZwzpOVdNA00BQzLl0htgICFgAQMS2ignUAYAzXnIiYAgpiEaQwa92EF2hhC4hBAGoQ0p1UltfEKF4yJ1gaMUtAEkRB0hIEksN7QjY5AawTr9zEyGGJLw6CIZPoSqTUYAbcgJqmUWzMrGtMm2E8dMGJEKYUkmnAm0E5urzQYjSiURTnPB5ChU0V8leIAcLAd0dRAqo+o/WTNdK8pTgV9AUjbtdxgyCQ4GRwzJpFmgkFiAzqjeRX5qvs8RTGQunZmsquyQ900aAPBCmCagJ7E0FFa6aQpXlCLEbShaUBrAw201lqFQ2uEY/4kFSS0ZzHNpj+oaEZ3AFRcfnJ3cEo7vQKDFgXuKRC9YIZ7HQPCAgjtSCPa0EYtOb0yU4RBAB0V2ABlLAGBKDM1o0PBkESGtt9xHaDCZ1p6bNdwaQHFjA9/FidHU/lTsgGg0NgahJguEIYYoGtwG2vdSd4lYNCl1I/S1rTBBlhtAWtiNCQCYoJgS5ZhR/8bVv+Py3806taiCAouPvpZdIZIlFTvyg8cPdR+OiU5+wArAKcFk05flmZttKa3Jl5fOjn7F1n0P/QY+pBn4tE33N8FUU1V5oSTZpscSd+3zZMGTTDrpV58/jlA3XJ2RITTS/JA9ICoHPUtCyz9htq7/mf20lX+bvE/vbhl6Ud/swD1817q0Lmh9xXDR55ME2GARlEURXFKmUSfLC59nJu9tdjyWFJBI6ys8UFUPnIcAMG9d8sDKgXWfZIga1s//Pq2efVP3Duo8gohJ3nw0jcEn3nK1IY/5nkr37rKYJuV85sH7ZGURWgeuvwtY500AxrVE9tk4eF2Un8netr7f8CKSwIvfdydxJCcqfuPKXqrkjy43X68/ZqQ+aXjU7BWV5d/uis/uQ+WSmHnJUu3LPPN7TYkITXlhgQZ7E5/587L3/SR98K9SeqFLlOT0Uey3YYIpOVufR9UKod532XvuTaB9ob6HEAe5Vn/hys2UojPeanDSGqqKjpGlOSTVj/Z9Eb6pOKHXFoa7p0KYEMypL8VdPlImLVW/f9bm/EPWSKJdiqhgAGafLs31Xux6npZ5drshy2/VpFBpdcZQrCN2j54Y/5WeXhptvUYl7eVOjdMjFS7ba7YunawolnwUi9tt0pvuycTtTbZL5dut6kx+MWt77r3G3y2X8Z8m/5wypfuzV+uNuS5ebbfyBYkfhtq272ebV/1J2FcLt0Dgzqx9W2RplXJGvyQRT/91qA/4mBScvt9gOLfA3zYi5oc6Hmdaz/plfPbw3ig+YdnXc1jgX9wO/+2iEhcLm1I0VnvfQD53QDRD5yKrNPzB/2AyAEApldGYhF3A4T/EWDjbhfADgdCJXVqdJbhcicXZTdufBFAvVipkCFwB3rmbiDuM/42Kl96KiZXzijUdP0Tqtf81NevzGSpTMxcqJ95X1EUxWCBMaZXHnNhzMCuoiiK4rtEuAD2XcIwsbSFRJhK2jIz615YwwaM24ndliqdrAGGvlfSK7gAn/iDXnlyTtacjV2lSQSD1ilyEAlY3CucrNS84Hyte/ZFojLrvyDoFIcdwLUi4en+mvso94/kM5/yWiyfWyBjaYmDFP0HkZcLU+U78d7Nl7CTG+XSxTKi4Oe8rrRlAMyVKZEptVVaTrn2zxdgNr7EPLzRGtW7F6TLJ18Mvv4vjR4aen0vjHuVzxUw52LOLdrv09B9Fb3OkqEVIAYKUrznBwa0XvmlP5Fb/jjV/hjb0DYQumOUxJKg310URVF8p7vT5yEWtf9kURTFKY6hCcchRuqKCH++a4GDJ6aUNuUxFtBJhYvuTzdbPVJwBmJOfL8S9xafKdlDkjXDiwQH4BCSV3jedWwYodHPs/UyFFxhyOhQhQIl0vExNnuhfLKmvQap5kabNFPc2hQhl1yXb/m0AtH29XGdUel1gxAb+A0JE8Dowulq129IQNg8WRRF8R2mAZj1YEBUD/Z7vUaBadqaSycVgJonZ6aUenC/IJVTOlxlM9f652SVwMBzxMLAyMZ60Rtxe+rMi3u4ojeS4ij10B3eok0NpHTzVUC8wCtO1QOT21tTgH7nEtUBcuHM5uMpVc4X7E3N4Kr4a/71V/oyDGcjUfyd/tdb9F6YAwsZpE4rwJnCvBJa3jUp4IpUr5vDsfev6XWYtr51NK0AFMm6DDO9/wC9wOF1G9U7T2jIFTkEZZQZ61FPO2mZwKWqtXe4Ef5/OS1vzur2hHuCsftXvmofF1dFle47EzHzhlJzHWKmIfCeT5RG61JDApTTEErLODWMyqVGd0oN0aKMA69KDekpiIuiNPTMkKVexsJejnO/v8r/f9sd4WQg1UZFd4FaN+yvfmWvmdDiF8kVaVaevF7xASy/3WxT4zWB6crWQo18PTV5RpUEG9LvvVUdks5HEv4zB8pd/9M12bp4plhafbn66ajZ2CCFNVK/dAp7N6t8pQ6KZeu1L6/cWk3SrXmBsJGPHDlqUaHJzbpfWglro2mGyVXLl/bP/2M5R+8WNCKm1P2gtcqDOS3MWnk8RYc8w3ipX1WpqWfmvtJN2/IYt2aq9fRPDVKVYYVmL52wTpqXe33FTUZW1KverAa5Th/huy5aHTXdF8vD7W9T2/XWhKxMz8K6TuXIzaKOSSn1wKYynz94U/mxNELedT+d7ffLTd9ScChrAB0c9i8M0jpiUpXfWy2NUaxWG0Lavytd+WUH8ZD956TMlOTy6q6QV2wu2ZXVSUuKIc1HoO6wlUPiA6i64f6Vu1c2prwryr+W+PcZaV2eIxOcBpP1/SnYRcVaC7DRMDZKAwJXozt9/ilnb1mbLYY+fHwHrBhTxcYxa7Agzdlj6taiCIFYL6fAHifeChDc5eTYTAi8SCKN17bkpJpe9MDHS2dwoafoYdSBr8zXvdQLFq145hJkofDxS7QPYEZtkfoUao5ImCoTM2NAQInsLiP68xzJ5eVtCu7Xwm72/w0i9DQ3orV+yZ9vLK/EFqAn/4uXegmlUeitUi9Phv/IXndA6QTXOyqKNZAYCCKHuivggiVj7zb9weLIy1XhHm1TFQh5loJOqiyjvzOi2HBeIQQu9JCOfFxvreQP1o4MDaTmLOMfqvh9sZO02vNJ65pf9U986ATff+ZjZm3eoRRFMeiihdngmi0bcg5N4I9Ryg0ZZgY1IiVQnu+as1elGG5IphPhzBX/j91StkrGQ5f3U6dXysc7eHqvJORDLLgFcj3AkfIXsiM002vfsaXAvLv3EVt56XnlVkiLJ+9evfv0f7z7wA9kFdVqVCvP7cHEjx/QoqJeGXYdPqN+7bL9yBKeqBCzaEqXBYdRMkfkUMpE66jU6zkF+5CAkbCboSH+V5dLffY+dlTJ88ZLwxOdT77Bbhuw3tSdzaxW5m4v5tCDK03VNh6IppOIsZcf46PqCSofIqHxUruEQKPq0DQkMcv+GPXj1qmZlFIHkTrSkrXLIbHzR4vXbemllTyYlp6jBo0IXTuEOpAq4vKDmewvbYYRD2wrgDdykPm1y5ZeernghTLrKzjm/3TBZqrS09lmIuQ9ff2hfokCrKnrJSEFOUKl14gmUZduyHoTYuyIoTd99hRRNYNbNIjL7KntqsHlkWPsqyXJVHrbJTJf2NOyy/2gOtoK5VN6t+Qm0bJbUv0CKecqvM4le6uRGR6j0iBccoxnZRma3Gdol1IHPuczBhRa744lHINEXV1aYwC/CyLQHu2BdYzz1/nKysrKyjJf7QChJVS+kBaPBJ/SLnWZVA876YxUBYepPtol7TUZDWDRyk6AcIFw6EOa3mSABN3mGthFA7R7Yc0AoQHfufP+X6sNcXiIcvj9LxXSzhlcadbKCmb6dPk/RCXxPw+7h+EcNTifDpP8sG9S5dMnJ3WoNE5DBo9YNHQwWlDo2EvN8S35NQQOH/YaYiNN1EHJ0PONoQdFVibiV51SoGAdIVdDtPOeSu3H0DsD2BmM0T1gIPB63duLvq5naMLnS2SBLLhV+13m9Ys6U7WjZHWnvP0yyiyWS/8Y2fcLKK64IKwfgsJviF3N+I3nUzmAfNpHGaOzAhX48j+8cJHcrJr0LVQq4rEbtaE3ndiNEYDol647eOijVXn3As30YN5+xK4vjPm9XjTINIjb60cBlXjYYmFOlcqHrfa6jApBqPdTxeM12KWahIGJmyPEAgWxVz7xXXoANVP66++KCZYv73Dk77FCZUu+TRGGy6NlEvlIPaWE1NdX+Ulz/HCVKm7BIoOChcZIBtsWQS3efN6aYfmPAal5WEsMRkRpNUtgW2WUMVvzkKIw0TiKsLJGVMicJkhuK6UWlRojV5X+OGWtLV/mqr+ksFWKkZrteEabbwMD78NiTW0Qn7qJIvlm6a87wMH4de/QJZquPa0/pg6HIWLHysxddbZpghmj9Wi5k/EWL0yN9UrsKSZvrz39VlWTb5zePGTYbL8+CIgHZY1+Zjts9r3r2e4hVBDMLAbXrt/80oUqu+hnSL5+rU8GlEC+mSEW/RAnirJG19ths29q1oYlaXHywV9MF3reuXu1yB2ZAGBvGyV5yoPPRVmgq8JLthM6O3mjyau3/ALUTnT/EGK1Wi1tMMdeucJvyDx5+xBMscm3B0mZ4ojarlNFb00hN5YY/MRVc51BDHursGvXO9+798IFfzRd2NskeSnewcmbW2P8Y00wyHMW0xKW2fF6f+mVmHOr9Qoaz47kw8972KhXD5PqN2/kt9b0Z3WV8m2t0ZWlITKoKrD9i8+/rF+xt7gytSgGgmmSJN7Ql4AxDIRjYGqs+FYm0txiMlO60xyWSW2W0IzrOKRWIWZrq7RKtd2IsO+aWDfEF008uVnKl7O1/Aclq2mn/DTP8chMJu88EA94sNyQPAedlfjUBs/rz6t1ZD7dPGkoG5G7ttG+Qb4Je9KqtqmfDJK013LHMvRJ6merlPzuA4eyzOSamjpb4de1xnbaV0MNm6BHBoG2ki6acCQhbx5nvgQ25aPLkgG//hnbVxulWpj11a0aooI/gKw839CcWZx5vkuYDharTHVKI+z6KVfgGt8jA1BhU50siqLo6DInGPXXzQO7LgkF+yCeQ6NrVR4yNcIXMOhQzHLDES1KGyVqbmPqXaVQ7UCXfCVnWypitsxDTOvz/fjXf3vPCpAfiM/f3GHtDOa4CAPpemLBKnsXt5SsV/xY/8qnueaDFiC7d9eG2ugWDy2q9CerTHVnx9igxQdakZL2GFqmYcZGEKmmAhOApsZHZxKQmiXACjXpmknThbutUTFRonfHMKvsMDFbZBLV1kkXa5QmCjE0lbKmrprTGBPSAqNEMb4Uh5pE4oCQDyPKxpNzwjG3H8dK0o+tSBxtgPYkV8djISLjRiKDIeQJFE1NByaV0kHZenJZo0Q0uZ3AimOtNZS4csNMYsuluxZQbUsc3uWIgEtaDDF3BaFMaBACRRjYsRhwbMaojbYTtGAMgcYxMy60xEhbDNaOZKqCxhITWdqKjlEm5FG0JZ4BAzN3aJgL5phJwDPYOMCMIB8YjyJCC0/4+KdwUgcFFxcFvZnfb4HiSz1QuUmR5sFsGciP9ggK6fYfmQLyN3/VI0X6Nx9NIP+TP77pxc0HeOGbqinARmcVlY9dqEgcFTOQICm1N/QtATogU81l947AKqXRpUUR3E6y08hkHJqyHW0Mz4zm16SuY5evqwyznt3w9qsHXowSID+sj6Z/c2vG5grAa73mWnNVdfe8ds24AE9yMP++6Iy/nxYgu7c9j355WMtYDYsni6IoBp0GKNpNKzQfK4qiGHTDRDMrPOZaeUHJJwze51t7NjQT8YS61Rt7ExNWtcwCGnGJe15+rqfQfLkoiiITxfKUJK61UsSh4xD+nnFPdADFTpWUS7siSg25k0j0taIoinwaYUywAb5KOGe1mQ3Ln4qlfSZmRY8bJ3WxdrWGtmrT8Es3AExVgTVBqy8URVEUi67nwYIrGopibbYORrDO7S0JNExE6DtEmY0VKpy0u9y7OxgZKUmjVWB+UPa0LaqgQEcOGX0u0xpRvoRpdQ15+qSUaHct7ufMD9KyeDjCWhukYsYZUfCuoiiK4r9GaI0iwFeDnXYc6Wl4qkT+fJyb9Zs/CRJbUStOauvOeLbcEM1EmaKv1VSknKK7cuARHUZojHu52HRYQ6jLpTsthCbVXkMUa1OSSRMUhmmHZLWsUkA3cn8rN2FdoaLg3R7ZWUCxrDRqzC29to+qXVIUaxB3hKrf+CpPE7TPuL0zvTxvdOjn+ryP2n0Q/pkPrmMn67k5cP3R9iM+2dr9oYhWVKU/1vS/4aoKzw9Jay+XBxOS2DNHSI7khwHyw42fMzydrXqzDdbPknIknT/iU9/aXzzJqQdIfY6frmFjwhJklobYBi685jFolCjCLxRFUWSLaA06KGGHaWiARKZ8xhhE6XJDrExjLyn/bVSa46SHdwL385sxJCYc4jA+yYrKvS46GoW53S99gHGQYQWm6f2sZ1QF76NdJ0F8c/zNvpkj/dwLRbdCWjx2UDq2j/54mA9JKB/i/bLPDDeEODY4/1N0OqVXPVkURfEq0IwU9TIHecUzTqTckExUQqUh+6IPEoYjPNV+Px02tjKYnCnpHcdj4tWNPHzDjrBEWkC7SuOeYaSJ8FL+rXCHVGwtxQeOinAUgD1HdMLLVoLcAgR9sxl2zfy1Va9UIgGla2VxFEguVfeJ/1ofXLxTKnJSzv91sdcuqx17tIV5R0+7xX4vJh8cTp97c9ggyJZR89mwN/539HKDxy4vpPmtZkdrUO118NWAyJljNqO1Qhve7YxRiFStEz5W5nmDRFCqLcaUOrNmlA7ioTVCcgn2FBrlksJM0G3KUx0kGBNTnnFRFHkzdLtYaXomFoeRFcWaZuYS4NMmXMQHmLFvk9W0DiPfe9KQgTpelfznLyrEqGFGXEt6MN0puXknR6Z8BkKEMtbbTOy0ywl13mgjSYlLnXTBQre1Qg97LcfVUPlo71NRohte6lDvaVR95SBGI52mU4C/Tze19KDWraq7ECPZPNmwKzE1Uprp+UFuJKvYWpv3nJlPk8Kp56+wSZplH+s6fSAj9H+26AMcCOvzIqOV3p4zwx/qBu72gFVRDARXyXpzjAFCB7A9usi0JiEqiqLIf80rQYQSqmMssg7Nyj0dQxtG+dcg8L87S3bwlvZRmCZm1oWFwWNFURTnAYnUyNL5FEvl0mNoNDJ76VxBcKzsyrcrUq3BMP0VU/vloiiK7LGiKIrsYbQS9OQQ3T2OiytFsWYlvCEeRvTQHdBDhz2RQIuW0vTCVPL7Wvk6wOaXAMYKyQyGVxg5x6EqyuCh/vhIYtZsDwupTLoQBO8qiqLIl92Awr7HiqIo1qbdx3eOKxpKvfZMUCmfikJERRVitj7vcnK3MYfhoeIwwObf5KyShN86PmQRBbWBYhquHUq9+/tXDrXv7d1KPlRBLWEfBYPPCEDtC4DYVwH4LDqi9aDT4eWf7jmSX85p+Nvh0rVuVtEtNq6rFZK9Xi29oHJ4SVwGtBME1w86i84yTfuqLkBjZ9mb1sDbI3jfp+MqzATpTYV8Y6jXwWSs2+DaSd1dfpCrKF5xWz3mGorTbntfMQFayWhT9Ttx5fkC3dwdDaNMWPy9yuaJ3fZlnwL1hgD8XZtVxnXxxxYo+LKXi1aGjI+Uptf0y650FNy8OrFRMT6jHWM/u0FT+yhmh5r07W+CqWfX7nC0i+IegN1B0FO1koHlztHxDoGN/MXdv+QMXQEb8We/nbF6Pv4zJ0KM3usmpa5ch/T7pDMAm0cyt6ELOXnGdSNL157pVvHxx9/4Qqui+eiUKwSCer8MrFkaAxTdFKRvYq+X8hJAmPNKBy+1S52D/61/tFz6lYvxiYp6kiE3B5CvOjLQbjthcAlfA0RYd9F9U9ILAOq4KjIJH/L2CsAHhrBDfCtvYodQS69QISVt4Wf6qSNpbd6STUsD3CxDf864vGpwBcjA7UDufmU8bJVw4Kd6FFRsLQMiufAv3cYVF8sspMcZMw/vdXnTjetuoUMXtcCCe/JweY4VYcumXuDS8ylLGcKm4shp8LljJJJodrr6YMnjOB0UZQDLPH/zhlmv1xO3aRSNKucL5qi9UDKlg0E/c4BiP0c6hzJveIMH+KgAfMTmmCM7R8lcwce8oZv+ZkZOycWJM70f2NHiHs/FzFUXoJaSkmFcIvW0ZM4VBD1Y916hPMdS98LcItHOUkP6+vyvk4X9VmVggdvqRNBHIP19gCIXz1t6J5AZL+YtPd+28R8iFzq7v1+BcTflnzWgeNvNENxji3kHJhkymfYnVjSN0fc4dWeZ1PujzcO+UBkOMWQtKiYz6g9TjjTUstPVgTVOzmMkzbnTfjL0wk0pjvYYnuBARWx+2m1izac4O5QcQKiQYJOvgqzmrX/hyRj+9zaQbDxEe7BRp84rqzSkWW6yutaTg3ybC8k66AoaT3QA0Kg/3wOo2fAQQH4oTV/5o8Ht5xNHEMk21dvOE9yshpj0r11yjmavPvGgS1s9jT5QBs6knl9iB94/KBWMLX3Do+NNclygOpTuFeOljs/1PIAIwFvpgB0EcxXwqTAxwLSzmasdtW8zEEJB43pf9YA9PvHBan7Xmcx9voDKnMnEmG6DocncNM+/7aMqHtlPfNtxZK4Uw6LNnEC9nYW6MfN4Vk/xv5YFyj2jXPg+PHpGJK0AfYn/rWnmPH6m5UqIwid88dmf/x+tUhagsbCy3Jo+ARB02CjZHS/57C847KmZ6Y30ZNSHxGCMvtunffpkWSLG49Y1jn1X0aXGy6BqHg9pNi6lHJnjJuRgBWvZ57upSGsyTz4NYJ2cAxEoemHgxhd88xUoXqKZXuP+1qlraz17CT/npcYavZ+spFZKgQl9Z/uVYz7hC2z7hmhYbFT1jDQSXzdmQmMktK+JNhN+es31ZZi93rK4vm/gQ1jg02lrdZZtnUBSyd61ct6ox733jNIMsxQzU+V8C1as3qW4kxmH3Gw+WxRFcdGCzI1mu9WjUZVJmcC7R6SugdhGJXXRe09afyPnj3nZ8wJTgAuzIdK7hZmt3YdfDZkv2xpGXTnyyq0JPP9bQWmNZobGOgoNPu1zCd/8g/HcYXiuu3UkZVBBn0bn8yNMm15Cai7cWsFadDoKwRC4wJU7CE+HJqqXvf1LHq9JWaJlFmmMpsOGpnLopAI4lEmOyDqFL8zjsp2WrcO83drq6VGNHxo5M3KOH0tJ8/mRulGURAYMy07RnNNQY3Ugamwd2Tsf3M54KbVWB0dMBhZsd1hIC8ZEAk3Mj40Q3xqqS3CJAlQ114JS1dJm+qmRpYPORCOU2pBufDA9IvA9+u8cfrZTGx/6ti2MPbRVQ2ov5rVB6Z5ad98/PMfw1gd3vOHztaIYiJWyQNDDz5YbmhOx9fDW5W2kkWPEDAlCazI2MTMyHsKhTmoczTgbIfCmdvV1evz4NgNIQabM0EbTfHiOCzteL94TDMPuamb6OqNBhK0+22bSq4/3l7afGzo0vzZWUY6D2nAbi/9GcO1OU9XoQtrfVOaM3m0ODn/9u9F6ET/Af+tuO+wlv+F5VEggQ747F+UngjfSSzgLTUGR6OG2nTOgQ7MNU6EoihQednu9H1F67GSlIcrutEOaT4w5dGRVeLp18JbhWffTaCPTaeis6NmqA/1OC6hW8tBPAXBTT9DnDr84Qrv/eLq+WbFrFaA1JhhBgtb3oB5G72pUoGQYY6mdLIqiOP+7uBo9Uxh09VtrJQhX1ugtSDiakb4DVYmdHIqu/y2O/LTDypJgjtq/WKjHg8MAxQXja5lbSMn56wombGsl1fQOmzp//D5Sbdp9HlqtNCSfXxWRvzoCUKjiRP3t/7TwH/oOGQj7azOl54PPc30p0ezewRN/0dLL5bDWqnwKyKJc5V8uUcfi2EtwxOCpHe88zfozD7VMa+4lANW96lQZVkz6Bmvvp6KwfeObP5cd+HlP80EgaTYj0CyVBnc1RLoyusfvCmEX09ck/9rFTU98dtaojr2v2utAVDJCXzMRtEmQdqVrgyfaTYPyWFlmg0BsYKan9TuLoiiKh30hne0DAf1YubSZwzjgpcSe6gZluB84WQKDtAWITzoyLLOz0832bAnvdMq+jM+rG2VsbOtZJLyEGaeMbrJvTEqb+UGitBLliQproV4ejzrtRPnGR1q5Jwee+VC0BpPxCOnuYQhiDaoWxktLw13bhRBEJecukvhORSJl09zxfLNZAyzL9bf639INDCOXfKi2y2K1MaUPfUW4zVJSgjsx2DFQ+KU3+Yo3dAfC7/61cuk4CGFXBY3ne8Vk2qCyNPcu/o96/GUP3u0cXx5Hk3wW8iaOapY/7JsnmylxBp/1eFF4vn/lwBUcztC1od0ErW2M04BiEWKN8K9dxYk1e+ZI5GoPZw2kCgVqAiFpVIZuYWHkGAPVdMSmXZ7bXhgFLSk7mF8Vg4ZEzaG+5lFdt3TLKKV00PJHEBOjqFUN2Oba/jd65E8B/WK/rzRzouMMOP5pIC8Wilm7t6XzE8dqLzkg9WfecE7jpkOQ7UrK1D38ATmbqooyF57rxSuSqk709D/b2yu7xdw88Jy2wffEPteDA0qlRwQguMdnJ/1OfBf0SUq64rsUbsrH33oSEYJm38Scb5NkAlN6t+8xbdKSMQyJQvnkobNQZU8WpGEfKyfYOiTxEK5V5QCijWMHEWSgmZgoqR8C4+KbPe4w0uoYA8A23dNrBhDiyO+1Jkfl6KMtXviFEyc/+SzwdvTAC9983bw++IdngQ3iN98mg/Z8GXHevu7Cs0C+v1fM/dzub/9V8NqzQNbqWUlUf/ZilZiFtFnYfWccBAvih4EDZELKAetl0zFMa6UxUQm7uTe2TISoA/Dx4WizcGepIeqFXziRs7DrDQoWH4wSYPDRMOwNkNb9FjidpQ8O9GnpZIbr3n87wGuf2bMCDL6XRoj5E9v7o/stbBwUgU73kRvKY6wZzy3ozsXoY+y8HSaa9uOJmf7A9O06aDXdpV3i/gn2qZVk3NQsegUCaBJD0DG2gZ0oe6YUxUBuRyltgg+ENLSm1kItobtomkQioI0GIQJt2kq4YY5mgo0gOg4Nww123Doeq5kJLUlFPVlQc20RLYzPMg4TmlqLWkKI0hrt72EBTUclEHH30eDjCmGWXU/w0YcTweiE44x7iCzpDBlENgSIHRVoEvZZxttPdSFqAIyj2qimu5wGbG0RFDdwBxb0R2gS3AH7VByg4gNqpJuEv3PhxiLDBjMvx8Ek7DCf+HPI9t4ew48nXEe+iiZD0PHmgqBMxteBRL2tU7G/CM/Pv/XLMGE1yETJdVfamMiDC9oPHtYTanCDEbC1WBujUI6CqSfCMQEdyNVYtfKEFqCr9gVdQuhYxAz5IflNaQqtlf7KJSljY5Wiubzrgd/8av/FWzb7n8rJVO0z88HN35MievLsEXX1w++4f/BWnenTSuX/5auswOrvvzdYHFQwVJ//8jutZKGTqSdHByJWNlqsZq3kSERs0U8iJGvZPO/8cyFI2E1TgAvn19Rp8k9xDji9kr95ggFJu4JadEvxTFJF86IoimKF5XGA25qPDVvR0RCQWfMkjyRAlLDz3T4RmA1styIWPGxjQyf44twlSxebakUxR6h/qpwzWBYN2meU635p45oy8RfKRGSiFo9QT65HiOPLU+nNyF2o5FzduRv0MiDUXQ+rM+uWxgiiOo5NUnQmGFP1kaUVsGcivDxLTxPimtJ194eWiUQJgSdd3FAu/SQQ+MGWvNkN44P1KntasG2Y2GZkKo+mUcJXTvpeLCpAmH3WUWv8hjAFLPuPlj0KgR320a+wovmBjbcMMAanhUaCS6mVwN4C/cgLrwLk9/o3Nc90Yz4XftKlDkJcrO4YKaSnBQnMkt5KM4yA4+6EkgTT2EfoQvpmSQMyX8WWHdriVCBu+rXcEOfUtd5aEa3pNvhOd6cLY7fZYSPNLS2QdMq9nIaQGxiBWoyC+Mg2N4TsPpYzXXMA8cETMNhzit1y+aDcoaee2OMQkF+DQfDXvgvsmXHm4ZhLTcbTQRIlynNpLAv2aqxLMJdKqROjq+btZpuFD1wyHuLbHGF8cptZQdUOquZ9gBHb8MyhcmlUyfUq1oCxYKRL6gbOiHa8tbWq3S1fmS82vbuxhWkt9B4FKB5SPmlPTB5O3uZK4q9IwAV+YIa3+Vy7F2CjP7cNPHEsBe207zhsSMCrLkHNPe+jl3Ltl/1WH2UcimJ9CI2nqbvf8IVtMIRDKD7qoNaHXzDnyFUCsPnVio6tmumpDzqtPvjwz85JNJWN9HZdBhFvV46v2QT1rFPaOQ1hdLIoiuJsRW+LjfHZa7HG7olr9rdGA9jzGmgtZzu2gRB2394ChyLsjTMYONz2ZXc9GzBxP4Ruq5dnzr7+uezrSiVVbzc/ojAc2PYmoNpVGH+Vwo4Ek9CwAKmk/mMfPJL68rs42pvjrH3r+vxg2fJBiRhdlr78w7PPPvvssyfKze7qlDOuh9BWUcv19IrP9TK/15/J28G73FZ/6jqs1DY5kB/xe+1mfjAhoxMkXysn77qu6imKPDGlcQzaeAT4nAG+4CctEwiNasbD0UlyiURc0wg4rvYFKyv/xv/0cZD+YYfGQ8OxnvOiMvWPz5aX05ymMxZNHc7TzUpDHnVJT9Mb+tpxFLD8vhLN0aUdL08pGTolVy9tDP18k2UMmEB43Ev99rImRa+WDZA19iLmoBe7djhTflTGvJ4z1S3n3ofOzBnMxc+Mva7WhfC3x8c/XY5fH8iUpq73lEgIhna68ciNnsLIvG8L7rlRZM0ZgSm5J4N4AhcG8vXi809nwt8cOV+U2dMTGEDk+vIYDYZoWfku5WSkPVtk88OWYyWtkZoPYGUYOPtBdCKuOVSazJukbYN0PlpRbaVF3uJLTvseSjKvuPl7/bUrxUPAzSUzzBF1eLo3lrVIOF77XkX+v6AbnbOYTMrR4jBhKctuec3lUmdPi6o7yPzdPdcV3UzjsoMQXtcqfVP2WZSs68Geq1gc7e2iMZVeh7FgjIe8vyOxOea0vGEdU3bTYvDJgrn+Mc/IGTMLCARhYzhogcaQBf3y0imzo/7tBVqut8Q1nUX5hCtxD9lBF2D9k6Qlt+LVlxzd6qx8Lu3WteW6B3/alIPM0iRxME9ljVaFupylPwe03+0HzcrxSaSK6M4VFh1qruRgctheU98zHRJh2EQMuWJwzZACcrfkrgVY9xSoNHPXlroZiDIMRN/UQGqKOTMcalERmjbGSz3NgdiOlVfBZIISr316SCyqeamfeta/K2A2sBhE7R+GXV1OcpQbkmgCKyXvJwGfnQ6WXFImaDyye65WhoEGkaUTwpg1w1omT4y0RzpkaQanxDlEwk1a/qYZlbjAOEkWVeQvp9XrOuftuH3kQSYvtF6pwm6GnFWGkklIu60WiqxezjZukDLhwqNzJpsLOnigPBiPwv5Sltb4k99JuuJutxjRa6ORcq81PGKxxjeAjDLBnU55l24tiqJ47Zhg2OO6tH/om3lKUBiE7mivYLKuzRqm9MBzR+CqHrvJnGLr6ynecNQSd1vF37a6pG337ux1P3aUi5rXaSDBp23obk0tisHCpGeKDPX6mEvbvuBbHQrHjSvOFUVRFMdsSJmcnnMmu24EKxByDUbbKp18+QWQXI/cP3gm2B+jXHslgFwZRw1xzmm+5+7GdnQqn+i8EL/YRoe8zVh9ZjiPLgo0zVLqpqKBni1B2KZBJBpeMTnoaB6p8pCyUaNmdVswDsIrb4dgU/JIHRmGjVWSMxy9vrx0ZLO1uCyDYSYxyLLgz0tGpIeW2siHkGVa6rbgg48vvrfiuhtjRGhQjooZtQSJip3nuF7vVItzw6bSOaOwsHu0e3qDQgcT6GDSimVqCGt1/KjTyH0JB2CaP/ThFBuW934URfH3Avutd6r+8d05eObDkMRgqJxqHB1ZW6pGVYBJo2TFcNo3ktYXa/ZaGdLVvkybAz255BaC+gnu+NgHuhxCq0N6pnKqs20/nVUpX9OAYcFJbUSFhuZwONUxrC6Zus8EAgj0NWMHZcRkzswDdUamsVLUnS31W85vvtnLr025sVcRjldlcvGyCx9rId2fUFL8fvHjT3u1VAANYywtNZxJMxn6hPgBCX6i101jVipm08fvTNIwu+6S9nrwBxx+PYf/ufnTdEZuqsjX0jUtXylLiL13tGhtzFM6w4EC4ry8qSHnivShB7Pw0os7DwnTpEkR7NeZVBVYAuNmCpDRdJKqrjK32UmLVM2oWCNTxJfecLAGtAxBoGBYSPdpZ+lgqCAauLoTD3d+EH/sBaPq5chan6nkHntZMl4XSA5SFLluq4oq2Je82L2WU25SRsxPvfhWvRyKDm85sTjoS3ndR4/Nl9J/17usBa4woANs4zNf2XQ9KOevx0M1OvFnJmeYY8485v3Dfov1yZkjYIDaf9mVD6YJOhqX6sYCXzd+6cGmNqUTCWsbPzjJifD5llOCbOFbYPf7cFIIFvbf8o3Le7IDafzmz46LRsZ0PBJl3OXNJz2hQAXUBZ50bQET2QmISj5PR1qx0OIyqdeABfYEBzVhMHvJqDuqXDpWGkwX7yVyiWhKGPgS5JwjmC7Y6UuX3uwaBfezT0aoJ6pncnOMeVvqRH7E1l8Ri7uyKzcbJu8ONC4561/FKqiHequXhnTVpxnvfpIdXU+odHMFotc/0RjxNz17Q9FXeEJzJGbPXPBOP9PwWt8ooRhiPoULTlck6xv9XPjPfTk+cutJnDBNiSCsGWIMJsLhWdmKCpC4qxoerYgtmKDc+yI7Nrzcx6jFaY6Nttdil9mUyhfHapw5/ExRZo6Z2fGq8feoiZugx6ul17xWriWiFEEzjI2uwq7pt9FImbpLn1oRfwPPKN18M0nz8+F0Ve/3V0EdqUzmK5vuv3VW8nkWXgr+uXJdSDdR5eYbbJXiuJmqxzzFgdhAUDYxtSYCxDPS88YepzqD4xiNQvaYYdiFXGny4FQ1wy+C6Ss3c6slvnE9kMIzMLNsB0cUlIz0zY/FL1Xj93XyWN5wd/8pT2TMMzFXmfL6iikjUZppX/6g7qJY1tOl83qdPF+pvPXZhzZ8PXUfh9IOfcmQw8MNccc4zPlUoChD1iKYCOLpigcgEUFYWmMn8hfmFGfdgJFIa/RClcRgTGmNXbf3/JYfOi/pPOXS+yESHbi6sTDKI3/FueNQE2pSHyX/t1LStFZyu7Iw16D+vVP8R9wdZutVXMrk32WT5aUgFw/m5TWPUapRwgBNCbUMZtEKYdOUdL9B8HuWp91W56fBiHRv8n5xQ/dO/U/y8mGvfBtPJqa07N+vB9nROG+neoTrDloIyotR0GP3Ef1Y6XYQAzF+Q2RC6/jOqMr5lGHMd1aXDLVZtdRmpOAoSORxrpPSg2TXvTr9wNd9gnOYuAVvViPeN9ez/k/vHTrqFlO3OffzMUtE5+lcUuMxocCktOT7Yercil7hfrj7WR+wXqPZhcaZro/oeX+qpeeXen9SBXj++v/+a5ciZ/RfrR9pQfqTbukilaTVLgbc92dQ3py78uEqbV2N3xKZq/LYnf/Hc5/I27/T2xy5faFVzqzzrqSGqm2WeIiWFNlVXiBxXVEURVGuXEg9eWuC97xYVVzvZ9dTg37Lsz8xkiznOzyFEHPyuf165GZS3RTYCRPbQIiZgAWFGOc8JWxg9Vx509I5q5Qp2RBHAxPEejTsHjkgyvRnS5rJJY+zjyIx5NVNWNHF6/Sp7ERQMeMozpasljvGKX7GNPykiSukxXXtt5H6lAbhSW6PPWtUeEKM0lfbsg0R3Ndg2tsjgg7mMNVQi8OR/mo76hQHFTD2qeDP3qxioai1vfULwxwnOcNpByLXpKOOBieS9KbS8+l7E4TPb3f7yPlPZIqHL1ws3vFvqrTtqkeeTtN+NWuyf3C8nJ6pPZMhYdKv9S5BgsOp7YhZawpDaJS5+ov+rBbH6vYgumHKDRlvg4+bxfIsQbCfsWpAH1BaNbfb6w51+SBhOKbeo5yGLHVImAPaJWLGjPiBveK7IcHOfV0pl36iHHPct2XpvOGYcUlwR1iGXYudtMNqFyy28qsh76nHplK+Nyw5tHP2bdnqV++l2KfGota/+tqDPis5bwhf7tGoTCjqhS+WFy3XPs/FcjhGAeoUiasqtyz9FYFv5X+4weA9vU45GGi+ZYycTpv+VDdQfXJ/jt32GQNVG+IigJqf30o3PF+HJhzQ9N5V/7R4mroUqR5eF2AMT4n2wHzQaSdp0KmWLjJScr7a2tJNWlqPWA3U/msxL37nV/yHGkvhgIDPgvenfL2T4fFGg6xfd5QbR8b5ELPA5bd4rDc1IAe1mW3GwZSjbHbGTKxBK3eMm87pmT2lPWIwlYZ0NbqJmbpc+fK2+14mYBmCQ97QxzXJyNKAHTOq9gV/v6YYS7NyTy2y75GuXXaKRXuv5ISdSMEBw1RZJl2oSwtMXqZDusEF5pXD7GtPJ+kpBxi6O4gMuXhC03DlYytIfPcgay0mkJr7yhthB+ux1lTXq4TZvah0OXM1fLCYxpkb0A8d0K10B5HyBniA/MD03S1YCc1TDFRRvHLhuZp7tVtvHRH19KH8wrPAxg7owWrwCffqS2r/St5qf8sfYwQil2m1WlncLwriMJwTDbV2ybjuzhggKKnMxvnjoLqA5i5f/gcFFzv5vM4Ak67AQKkiGITkB47/+rn6a08d/pnxP9WbtUxnsMIgbL3j+xnRhj7/0LKyNtMbrWj3q/w+h85/FXLF3dzxf+5Iy+syFh0KaZoYR4UgJghhtxtCUaFF0Fo5sccnYMxGjGsibXZ9mJrPUrVpiAHNhK5mSbuOntOUZUMSKFAoJtCmI0zqML7LzllFjFZfjIxAE4ljNEidaL+xhEpBPYpCFgnssVja5VeNLcy6GXBNB5vQ8GNtYUNoT5lZI9QCdkliFKhPave6RuG+DM8SGqNgPNbx4jTc9R5LY+SLpDrOp0xaQblLHADEsGtuzKoxzX6tUWL1RAelQx0HoHdN7AwVjEMzsgamuL5tmTMSloSZjm6Axpi76gEoTGLQYrq7xajA2OkxiNVsg2Aqqoc7MRGodkjQSoKrZ2gzS6SBRsghLPwutw2/1k0lLrxPeUZLgi4npFYOyRTE1kTafeVQrNAEEH6wxcxMEDCL2Gl2KolDwKJhdljt5qleJZH4HqNNCKpVNxk1ZRGyv+++FPOWemszC+RNCPtXhplMLfL59/cUQXHFwinkhdPqN/MnuQX4i4UM9SHK8n9xj1YomhZqBx3PK2oD7/GXW+jA3R4Y7wsnEoKuDlDdJ9ABzeAOYgIgbNgbMDFd2jJ6eY14b2K9e5+UBqotoV00ML4wroJoVhkF+7UoYjPVVTJOGDYbEyHoQBsCdGBq+8I7WXgiHlJP2go0CcosoEIjhgZogtutVrSerKvg+J1LMWoMElRoIkWoArrahvvmrDbxfvQiiuUDUk/Mwr5ZHQyBz5pDXMwebUB0lyiB661hoQ62xVElOoruCGwYE0o9Fj1lmkzaINDK1lH3edY7SBKGFqWqSz5c9tvUyzInoGhpQYy95r6FcYue45quvR593y7bnEjAPGEnCB8nJMDM7DNhEMZ1s28B+agE02NAp4oySpp1BVhlbEygmcUqkbmPd7BPEiBmhjuQ98Ra4jlQ++9ShjDcSVzrdmOWQ41GmXCnZULG0bEeoUOopnU4HaFiESVmfxDZTypmNA2tjjMzxow1CAbU/gn1TBzGsQpqPBmoY6EGrfyganVjgSdJy4pxeIxRKJBdAZNHIR5D74p22kkNxCw2CZjaH9naHttCPhgyQbAAjTtQk5BAhBBOBSMkDj9otDMMSvceJ8Rxl50hxs+rW5fQNMfRwGQoxDMfCNln5rSxoOE4aJ5gbpQfgvb3OIU1NEIUKj02IcHtO2fmCMBoMR2ggYiCmDqhVYIshEygtbUg1AnHsDttoG649MvokgT43TZgok4SGkIxxDUWmVW1u7SRcTuhENptAiEYD0TZxgywEDOJJRDguNidc2FohrynOrCkoe0KFC2NCUAlh5TChm3GOACwbzl2vZQ5Yn4l2J3svGMmmmvHiSwgYXAXT+575j6YMFPyePUFaZdcvqeNcVmmugsQSSDWTFnugCaKWWw7ZgzDYnj1PiZuX3bNx4PGNA2T7ViM7HZL5zew4K628XO9x9zXBCpEuy9TVLH2X56pDE2tIFG6CWEIIVFz2ggsqzZaa1qKpFku/Z6RgZLQ45QBlljtV1hUbCAkcdjoJHQEwRj2UTXqacAELUC+qJoQuW9TLVbEfeNhDMIxC5pZQVh00A7EBoNSiRkPQROzy/pmn25Kd1zcF1ZCy1/TDHX/pbh/e4p/6sfq5wDHWv6nfrzPSz0chvkne3wYCH70TeM/WvpHS/93svT/CxZjkqliEgP2AAAAAElFTkSuQmCC";
@@ -495,6 +506,12 @@ const yearItems = ()=> S.items.filter(i=>{
   return p && !p.storno && !p.geloescht;
 });
 const PAPIERKORB_TAGE = 30;
+const MONATE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+/* Nur während der Berichtserzeugung gesetzt — sonst zeigt die App immer das ganze Jahr */
+const imMonat = datum => S.pMonat === null || S.pMonat === undefined
+  || (datum && parseInt(datum.slice(5,7),10)-1 === S.pMonat);
+const zeitraumText = ()=> (S.pMonat === null || S.pMonat === undefined)
+  ? `Geschäftsjahr ${S.year}` : `${MONATE[S.pMonat]} ${S.year}`;
 /* Belegnummern müssen je Jahr eindeutig sein */
 function doppelteNummern(){
   const zaehler = {}, doppelt = [];
@@ -764,7 +781,7 @@ function renderCosts(){
   const es = S.expenses.filter(e=>inYear(e,S.year)).sort((a,b)=> a.datum<b.datum?1:-1);
   document.getElementById("costList").innerHTML = es.length ? es.map(e=>`
     <button class="linkrow" data-cost="${e.id}">
-      <div><div class="l">${esc(KAT[e.kat]||e.kat)}</div><div class="d">${dstr(e.datum)}${e.km?` · ${e.km} km`:""}${e.notiz?" · "+esc(e.notiz):""}</div></div>
+      <div><div class="l">${e.beleg?`<span class="mono" style="color:var(--stamp);font-size:12px">${String(e.beleg).padStart(4,"0")}</span> `:""}${esc(KAT[e.kat]||e.kat)}${(e.shots||[]).length?` <span class="tag ok">Beleg</span>`:` <span class="tag warn">ohne Beleg</span>`}</div><div class="d">${dstr(e.datum)}${e.km?` · ${e.km} km`:""}${e.notiz?" · "+esc(e.notiz):""}</div></div>
       <div class="mono" style="font-weight:600">${eur(e.betrag)}</div>
     </button>`).join("")
     : `<div class="empty"><b>Keine Kosten erfasst.</b>Fahrten zum Abholen, Kartons, Polstermaterial — das drückt deinen Gewinn und gehört rein.</div>`;
@@ -774,12 +791,29 @@ function renderOut(){
   const st = stats();
   document.getElementById("outBanner").innerHTML = st.ps.length ? "" :
     `<div class="banner info">Für ${S.year} liegt noch nichts vor. Die Auswertungen füllen sich, sobald du Ankäufe erfasst.</div>`;
+  // Monatsraster: zeigt gleich, in welchem Monat überhaupt etwas los war
+  const monVor = new Array(12).fill(0);
+  S.purchases.filter(p=>inYear(p,S.year)&&!p.storno&&!p.geloescht).forEach(p=>{
+    if(p.datum) monVor[parseInt(p.datum.slice(5,7),10)-1] += num(p.betrag);
+  });
+  const monAkt = new Array(12).fill(false);
+  S.purchases.filter(p=>inYear(p,S.year)&&!p.geloescht).forEach(p=>{ if(p.datum) monAkt[parseInt(p.datum.slice(5,7),10)-1] = true; });
+  S.expenses.filter(e=>inYear(e,S.year)).forEach(e=>{ if(e.datum) monAkt[parseInt(e.datum.slice(5,7),10)-1] = true; });
+  S.items.forEach(i=>{ if(i.sale && i.sale.datum && i.sale.datum.slice(0,4)==String(S.year)) monAkt[parseInt(i.sale.datum.slice(5,7),10)-1] = true; });
+  document.getElementById("monatsRaster").innerHTML =
+    `<div class="mgrid">${MONATE.map((m,ix)=>`
+      <button class="mbtn ${monAkt[ix]?"hat":"leer"}" data-print="monat-${ix}">${m.slice(0,3)}
+        <small>${monAkt[ix]? (monVor[ix]?eur(monVor[ix]).replace(" €",""):"—") : "leer"}</small></button>`).join("")}</div>
+     <button class="btn" data-print="monat-alle" style="margin-top:12px">Alle Monate ${S.year}</button>
+     <p class="hint" style="margin-top:10px">Ein Monatspaket enthält Übersicht, Ankäufe mit Eigenbelegen, Verkäufe und Kosten mit Rechnungen — in dieser Reihenfolge. Rot heißt: in diesem Monat wurde etwas erfasst, die Zahl ist der Wareneinkauf.</p>`;
+
   document.getElementById("printRows").innerHTML = `
     ${outRow("journal","Ankaufsjournal","Alle Ankäufe des Jahres als Tabelle. Die Summe ist dein Wareneinkauf.")}
     ${outRow("belege","Eigenbelege einzeln","Eine Seite je Ankauf, mit Bildern und Unterschriftszeile.")}
+    ${outRow("verkaeufe","Verkäufe","Erlöse, Gebühren, Porto und Deckungsbeitrag je Position.")}
     ${outRow("marge","§ 25a-Aufstellung","Einkauf, Verkauf und Differenz je Position — Vorsorge für den Fall, dass du aus § 19 rauswächst.")}
     ${outRow("lager","Lagerliste 31.12.","Unverkaufte Ware mit Einkaufswert. Fragt dein Steuerberater.")}
-    ${outRow("kosten","Kostenaufstellung","Fahrten, Porto, Verpackung, Gebühren.")}
+    ${outRow("kosten","Kostenaufstellung","Fahrten, Porto, Verpackung, Gebühren — mit allen hinterlegten Rechnungen als eigene Seiten.")}
     ${outRow("verfahren","Verfahrensdokumentation","Beschreibt, wie dieses Buch geführt wird. Einmal drucken, abheften.")}
     ${outRow("blanko","Ankaufbelege zum Mitnehmen","Vier leere Belege pro Seite mit Unterschriftsfeld — für den Flohmarkt ohne Handy.")}
     ${outRow("alles","Komplettpaket drucken","Alles oben in einem Rutsch.")}`;
@@ -843,6 +877,7 @@ function purchaseForm(p){
 
 function renderShots(){
   const d = S.draft;
+  if(d && d.kosten) return renderKShots();
   const g = document.getElementById("shotGrid"); if(!g) return;
   const zahl = {};
   d.shots.forEach(s=>{ zahl[s.kind] = (zahl[s.kind]||0)+1; });
@@ -854,6 +889,16 @@ function renderShots(){
       <div class="kindlab">${SHOT[s.kind]}</div></div>`).join("")
     + Object.entries(SHOT).filter(([k])=>k!=="eigenbeleg").map(([k,v])=>`
     <button class="shot add" data-addshot="${k}"><span>+</span><span>${v}${zahl[k]?` (${zahl[k]})`:""}</span></button>`).join("");
+}
+
+function renderKShots(){
+  const d = S.draft;
+  const g = document.getElementById("kShotGrid"); if(!g) return;
+  g.innerHTML = d.shots.map(x=>`
+    <div class="shot"><img src="${shotURL(x.id, x.blob)}" alt="Beleg">
+      <button class="del" data-rmshot="${x.id}" aria-label="Entfernen">×</button>
+      <div class="kindlab">${KSHOT[x.kind]||"Beleg"}</div></div>`).join("")
+    + `<button class="shot add" data-addshot="rechnung"><span>+</span><span>Rechnung${d.shots.length?` (${d.shots.length})`:""}</span></button>`;
 }
 
 function renderPositions(){
@@ -1121,7 +1166,7 @@ function openEigenbeleg(p){
 async function saveEigenbeleg(){
   const m = S.meta, d = S.draft;
   const betrag = num(document.getElementById("e_betrag").value);
-  if(!betrag){ toast("Betrag fehlt"); return; }
+  if(document.getElementById("e_betrag").value === ""){ toast("Betrag fehlt"); return; }
   const mkImg = pad => new Promise(res=>{
     if(pad.isEmpty()) return res(null);
     const i = new Image(); i.onload = ()=>res(i); i.onerror = ()=>res(null); i.src = pad.canvas.toDataURL("image/png");
@@ -1315,9 +1360,9 @@ function bindPurchaseForm(p){
 async function savePurchase(p){
   const d = S.draft;
   const betrag = num(val("f_betrag"));
-  const unentgeltlich = /geschenk|einlage/i.test(val("f_plattform")) || val("f_zahlart")==="keine";
-  if(!betrag && !unentgeltlich){ toast("Kaufpreis fehlt — bei Geschenken die Herkunft auf „Geschenk / Einlage“ stellen"); return; }
-  if(!betrag && !confirm("Kaufpreis 0,00 € — als unentgeltlichen Erwerb festhalten? Beim Verkauf ist dann der volle Erlös Gewinn.")) return;
+  const feldLeer = val("f_betrag") === "";
+  if(feldLeer){ toast("Kaufpreis fehlt — bei Geschenken 0 eintragen"); return; }
+  if(!betrag && !confirm("Kaufpreis 0,00 € — als unentgeltlichen Erwerb festhalten?\n\nDu hattest keine Betriebsausgabe. Beim Verkauf ist der volle Erlös Gewinn.")) return;
   const typ = val("f_typ");
   if(typ==="konvolut"){
     const s = d.items.reduce((a,i)=>a+num(i.ek),0);
@@ -1648,9 +1693,19 @@ async function saveRunde(ev){
 }
 
 /* ---------------- Kosten ---------------- */
+function nextKBeleg(y){
+  return S.expenses.filter(e=>e.year===y).reduce((a,e)=>Math.max(a, e.beleg||0), 0) + 1;
+}
 function openCost(id){
   const e = id ? S.expenses.find(x=>x.id===id) : {datum:today(), kat:"fahrt"};
-  openSheet(id?"Kosten":"Kosten erfassen", `
+  const nr = id ? (e.beleg||0) : nextKBeleg(S.year);
+  S.draft = {kosten:true, id:id||null, shots:[]};
+  if(id) ladeKShots(e);
+  openSheet(id?`Beleg K-${e.year}-${String(nr).padStart(4,"0")}`:"Kosten erfassen", `
+    <div class="banner info" style="display:flex;align-items:center;gap:11px">
+      <div style="font-family:var(--mono);font-weight:700;color:var(--stamp);font-size:15px">K-${id?e.year:S.year}-${String(nr).padStart(4,"0")}</div>
+      <div style="flex:1;font-size:12.5px">Eigener Nummernkreis für Kosten, getrennt von den Ankäufen.</div>
+    </div>`+`
     <div class="row">
       <div class="field"><label>Datum</label><input type="date" id="c_datum" value="${e.datum||today()}"></div>
       <div class="field"><label>Art</label><select id="c_kat">${Object.entries(KAT).map(([k,v])=>`<option value="${k}" ${e.kat===k?"selected":""}>${v}</option>`).join("")}</select></div>
@@ -1658,8 +1713,14 @@ function openCost(id){
     <div id="c_km"></div>
     <div class="field"><label>Betrag €</label><input class="num" inputmode="decimal" id="c_betrag" value="${e.betrag??""}" placeholder="0,00"></div>
     <div class="field"><label>Notiz</label><input id="c_notiz" value="${esc(e.notiz||"")}" placeholder="Wofür?"></div>
-    ${id?`<button class="btn danger" id="c_del">Löschen</button>`:""}
+
+    <h2 style="margin-top:20px">Rechnung oder Beleg</h2>
+    <div class="shots" id="kShotGrid"></div>
+    <p class="hint">Abfotografieren oder den PDF-Screenshot einsetzen. Die Belege werden im Jahresausdruck als eigene Seiten mitgedruckt — dann liegt alles zusammen.</p>
+
+    ${id?`<button class="btn danger" id="c_del" style="margin-top:16px">Löschen</button>`:""}
   `, ()=>saveCost(e), "Sichern");
+  renderKShots();
   const kmBox = ()=>{
     const isFahrt = val("c_kat")==="fahrt";
     document.getElementById("c_km").innerHTML = isFahrt
@@ -1672,12 +1733,27 @@ function openCost(id){
   const dl = document.getElementById("c_del");
   if(dl) dl.onclick = async ()=>{ if(!confirm("Diesen Kostenposten löschen?")) return; await del("expenses",e.id); await reload(); closeSheet(); toast("Gelöscht"); };
 }
+async function ladeKShots(e){
+  for(const x of (e.shots||[])){
+    const rec = await getOne("images", x.id);
+    if(rec) S.draft.shots.push({id:x.id, kind:x.kind||"rechnung", blob:rec.blob});
+  }
+  renderKShots();
+}
 async function saveCost(e){
   const betrag = num(val("c_betrag"));
-  if(!betrag){ toast("Betrag fehlt"); return; }
+  if(val("c_betrag") === ""){ toast("Betrag fehlt"); return; }
   const datum = val("c_datum")||today();
-  await put("expenses",{id:e.id||uid(), year:parseInt(datum.slice(0,4),10), datum, kat:val("c_kat"), betrag, km:num(val("c_kmv")||0)||null, notiz:val("c_notiz")});
-  await reload(); closeSheet(); toast("Gesichert");
+  const year = parseInt(datum.slice(0,4),10);
+  const d = S.draft;
+  for(const x of d.shots) await put("images",{id:x.id, blob:x.blob, art:"kostenbeleg"});
+  const rec = {id:e.id||uid(), year, beleg: e.beleg || nextKBeleg(year), datum,
+    kat:val("c_kat"), betrag, km:num(val("c_kmv")||0)||null, notiz:val("c_notiz"),
+    shots: d.shots.map(x=>({id:x.id, kind:x.kind}))};
+  await put("expenses", rec);
+  const check = await getOne("expenses", rec.id);
+  await reload(); closeSheet();
+  toast(check ? `Kosten K-${String(rec.beleg).padStart(4,"0")} abgelegt · ${rec.shots.length} Belege ✓` : "Konnte nicht abgelegt werden");
 }
 
 /* ---------------- Stammdaten ---------------- */
@@ -1863,7 +1939,7 @@ async function openStorage(){
     Bilder in der Fotos-App darfst du löschen: die App hat beim Hinzufügen eine eigene Kopie angelegt.<br><br>
     Verloren geht alles nur, wenn du das App-Symbol vom Home-Bildschirm löschst oder in den Safari-Einstellungen die Website-Daten entfernst. Dagegen hilft nur die Sicherungsdatei.</p>
   `, null);
-  document.getElementById("st_backup").onclick = async ()=>{ closeSheet2(); await backup(); };
+  document.getElementById("st_backup").onclick = async ()=>{ await backup(); };
   document.getElementById("st_upd").onclick = async ()=>{
     toast("Suche nach Update …");
     try{
@@ -1901,20 +1977,33 @@ async function backup(){
   const name = `ankaufsbuch-${today()}-${zz(jetzt.getHours())}${zz(jetzt.getMinutes())}.json`;
   const blob = new Blob([JSON.stringify(out)],{type:"application/json"});
 
-  let fertig = false;
-  try{
-    const datei = new File([blob], name, {type:"application/json"});
-    if(navigator.canShare && navigator.canShare({files:[datei]})){
-      await navigator.share({files:[datei]});   // öffnet direkt das Teilen-Menü
-      fertig = true;
-    }
-  }catch(e){
-    if(e && e.name === "AbortError"){ toast("Sicherung abgebrochen"); return; }
-  }
-  if(!fertig) download(name, blob);
-
   S.meta.lastBackup = Date.now(); await put("meta",{id:"stamm", ...S.meta});
-  render(); toast("Sicherung erstellt");
+  render();
+
+  // iOS gibt das Teilen-Menü nur direkt aus einem Fingertipp frei. Nach dem Packen
+  // ist der ursprüngliche Tipp abgelaufen — deshalb hier ein frischer Knopf.
+  let datei = null;
+  try{ datei = new File([blob], name, {type:"application/json"}); }catch(e){}
+  const teilbar = !!(datei && navigator.canShare && navigator.canShare({files:[datei]}));
+  const kb = Math.round(blob.size/1024);
+
+  openSheet2("Sicherung", `
+    <div class="banner info"><b>${esc(name)}</b><br>${kb} KB · ${S.purchases.length} Belege · ${imgs.length} Bilder</div>
+    <button class="btn" id="bk_go">${teilbar ? "Teilen und in Dateien sichern" : "Datei sichern"}</button>
+    ${teilbar ? `<button class="btn ghost" id="bk_dl">Stattdessen herunterladen</button>` : ""}
+    <p class="hint" style="margin-top:14px">${teilbar
+      ? "Im Teilen-Menü „In Dateien sichern“ wählen und iCloud Drive als Ort. Beim nächsten Mal merkt sich iOS den Ort."
+      : "Die Datei landet in Downloads. Von dort in iCloud Drive verschieben."}</p>`, null);
+
+  document.getElementById("bk_go").onclick = async ()=>{
+    if(teilbar){
+      try{ await navigator.share({files:[datei]}); closeSheet2(); toast("Sicherung abgelegt"); return; }
+      catch(e){ if(e && e.name === "AbortError") return; }
+    }
+    download(name, blob); closeSheet2(); toast("Sicherung erstellt");
+  };
+  const dl = document.getElementById("bk_dl");
+  if(dl) dl.onclick = ()=>{ download(name, blob); closeSheet2(); toast("Sicherung erstellt"); };
 }
 async function restore(file){
   try{
@@ -1973,10 +2062,10 @@ function phead(t,s){
   const m = S.meta;
   const lg = logoJetzt();
   const logo = lg ? `<img src="${lg}" alt="" style="height:18mm;width:18mm;object-fit:contain;float:right;margin-left:6mm">` : "";
-  return `<div class="phd">${logo}<h1>${t}</h1><div class="sub">${esc(m.name||"—")}${m.firma?" · "+esc(m.firma):""}${m.stnr?" · St.-Nr. "+esc(m.stnr):""}<br>Geschäftsjahr ${S.year}${s?" · "+s:""} · erstellt am ${new Date().toLocaleDateString("de-DE")}${m.marke?"<br>"+esc(m.marke):""}</div><div style="clear:both"></div></div>`;
+  return `<div class="phd">${logo}<h1>${t}</h1><div class="sub">${esc(m.name||"—")}${m.firma?" · "+esc(m.firma):""}${m.stnr?" · St.-Nr. "+esc(m.stnr):""}<br>${zeitraumText()}${s?" · "+s:""} · erstellt am ${new Date().toLocaleDateString("de-DE")}${m.marke?"<br>"+esc(m.marke):""}</div><div style="clear:both"></div></div>`;
 }
 function pJournal(){
-  const ps = S.purchases.filter(p=>inYear(p,S.year)).sort((a,b)=>a.beleg-b.beleg);
+  const ps = S.purchases.filter(p=>inYear(p,S.year) && !p.geloescht && imMonat(p.datum)).sort((a,b)=>a.beleg-b.beleg);
   const sum = ps.filter(p=>!p.storno).reduce((a,p)=>a+num(p.betrag),0);
   return `<div class="page">${phead("Ankaufsjournal","Wareneinkauf von Privat")}
   <table class="ptbl"><colgroup><col style="width:13mm"><col style="width:20mm"><col><col style="width:42mm"><col style="width:20mm"><col style="width:26mm"><col style="width:20mm"></colgroup>
@@ -1992,7 +2081,7 @@ function pJournal(){
 }
 function pBelege(){
   const m = S.meta;
-  return S.purchases.filter(p=>inYear(p,S.year)).sort((a,b)=>a.beleg-b.beleg).map(p=>{
+  return S.purchases.filter(p=>inYear(p,S.year) && !p.geloescht && imMonat(p.datum)).sort((a,b)=>a.beleg-b.beleg).map(p=>{
     const its = S.items.filter(i=>i.purchaseId===p.id);
     const shots = (p.shots||[]).map(s=>{ const rec = S.imgCache?.[s.id]; return rec?`<figure><img src="${rec}"><figcaption>${SHOT[s.kind]}</figcaption></figure>`:""; }).join("");
     const sigV = p.sigV ? (S.imgCache?.[p.sigV] || null) : null;
@@ -2025,7 +2114,7 @@ function pBelege(){
   }).join("");
 }
 function pMarge(){
-  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year));
+  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year) && imMonat(i.sale.datum));
   const eSum = sold.reduce((a,i)=>a+num(i.ek),0), vSum = sold.reduce((a,i)=>a+num(i.sale.vk),0);
   const unter = sold.filter(i=>num(i.ek)<=750);
   if(!sold.length) return `<div class="page">${phead("Aufstellung nach § 25a UStG","Einzeldifferenz je Gegenstand")}
@@ -2049,13 +2138,30 @@ function pLager(){
   </tbody></table><div class="ptot">Lagerwert: ${eur(l.reduce((a,i)=>a+num(i.ek),0))} · ${l.length} Positionen</div></div>`;
 }
 function pKosten(){
-  const es = S.expenses.filter(e=>inYear(e,S.year)).sort((a,b)=>a.datum<b.datum?-1:1);
-  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year));
+  const es = S.expenses.filter(e=>inYear(e,S.year) && imMonat(e.datum)).sort((a,b)=>a.datum<b.datum?-1:1);
+  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year) && imMonat(i.sale.datum));
   const geb = sold.reduce((a,i)=>a+num(i.sale.gebuehren),0), por = sold.reduce((a,i)=>a+num(i.sale.porto),0), ver = sold.reduce((a,i)=>a+num(i.sale.verpackung),0);
   const sum = es.reduce((a,e)=>a+num(e.betrag),0);
+  const belegseiten = es.filter(e=>(e.shots||[]).length).map(e=>{
+    const bilder = (e.shots||[]).map(x=>{ const d = S.imgCache?.[x.id]; return d?`<figure><img src="${d}"><figcaption>${KSHOT[x.kind]||"Beleg"}</figcaption></figure>`:""; }).join("");
+    if(!bilder) return "";
+    return `<div class="page">${phead("Kostenbeleg","Beleg K-"+e.year+"-"+String(e.beleg||0).padStart(4,"0"))}
+      <div class="ebox"><div class="egrid">
+        <div class="k">Belegnummer</div><div class="mono"><b>K-${e.year}-${String(e.beleg||0).padStart(4,"0")}</b></div>
+        <div class="k">Datum</div><div>${dstr(e.datum)}</div>
+        <div class="k">Art</div><div>${KAT[e.kat]||e.kat}</div>
+        <div class="k">Betrag</div><div class="mono"><b>${eur(e.betrag)}</b></div>
+        ${e.km?`<div class="k">Gefahren</div><div>${e.km} km à ${KM_SATZ.toFixed(2).replace(".",",")} €</div>`:""}
+        ${e.notiz?`<div class="k">Notiz</div><div>${esc(e.notiz)}</div>`:""}
+      </div></div>
+      <div class="pimgs">${bilder}</div></div>`;
+  }).join("");
+  const ohne = es.filter(e=>!(e.shots||[]).length).length;
+
   return `<div class="page">${phead("Kostenaufstellung","Betriebsausgaben neben dem Wareneinkauf")}
-  <table class="ptbl"><thead><tr><th>Datum</th><th>Art</th><th>Notiz</th><th style="text-align:right">km</th><th style="text-align:right">Betrag</th></tr></thead><tbody>
-  ${es.map(e=>`<tr><td>${dstr(e.datum)}</td><td>${KAT[e.kat]||e.kat}</td><td>${esc(e.notiz||"")}</td><td class="n">${e.km||""}</td><td class="n">${num(e.betrag).toFixed(2).replace(".",",")}</td></tr>`).join("")}
+  <table class="ptbl"><colgroup><col style="width:16mm"><col style="width:20mm"><col style="width:34mm"><col><col style="width:14mm"><col style="width:20mm"></colgroup>
+  <thead><tr><th>Beleg</th><th>Datum</th><th>Art</th><th>Notiz</th><th style="text-align:right">km</th><th style="text-align:right">Betrag</th></tr></thead><tbody>
+  ${es.map(e=>`<tr><td class="mono">${e.beleg?"K-"+String(e.beleg).padStart(4,"0"):"—"}</td><td>${dstr(e.datum)}</td><td>${KAT[e.kat]||e.kat}</td><td>${esc(e.notiz||"")}</td><td class="n">${e.km||""}</td><td class="n">${num(e.betrag).toFixed(2).replace(".",",")}</td></tr>`).join("")}
   </tbody></table>
   <h3 class="psec">Aus Verkäufen gebucht</h3>
   <table class="ptbl"><tbody>
@@ -2064,8 +2170,57 @@ function pKosten(){
     <tr><td>Verpackung</td><td class="n">${ver.toFixed(2).replace(".",",")}</td></tr>
   </tbody></table>
   <div class="ptot">Kosten gesamt: ${eur(sum+geb+por+ver)}</div>
-  <p class="pnote">Fahrtkosten mit ${KM_SATZ.toFixed(2).replace(".",",")} € je gefahrenem Kilometer angesetzt.</p></div>`;
+  <p class="pnote">Fahrtkosten mit ${KM_SATZ.toFixed(2).replace(".",",")} € je gefahrenem Kilometer angesetzt.${ohne?` ${ohne} Position${ohne>1?"en":""} ohne hinterlegten Beleg.`:" Zu jeder Position liegt ein Beleg bei."}</p></div>${belegseiten}`;
 }
+function pVerkaeufe(){
+  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year) && imMonat(i.sale.datum))
+    .sort((a,b)=> a.sale.datum.localeCompare(b.sale.datum));
+  if(!sold.length) return `<div class="page">${phead("Verkäufe","Erlöse und Nebenkosten")}
+    <p class="ptext">In diesem Zeitraum wurden keine Verkäufe erfasst.</p></div>`;
+  const sum = k => sold.reduce((a,i)=>a+num(k(i)),0);
+  const brutto = sum(i=>i.sale.vk), geb = sum(i=>i.sale.gebuehren), por = sum(i=>i.sale.porto), ver = sum(i=>i.sale.verpackung);
+  const ek = sum(i=>i.ek);
+  return `<div class="page">${phead("Verkäufe","Erlöse und Nebenkosten")}
+  <table class="ptbl"><colgroup><col style="width:16mm"><col style="width:20mm"><col><col style="width:22mm"><col style="width:18mm"><col style="width:18mm"><col style="width:18mm"></colgroup>
+  <thead><tr><th>Beleg</th><th>Datum</th><th>Gegenstand</th><th>Plattform</th><th style="text-align:right">Einkauf</th><th style="text-align:right">Erlös</th><th style="text-align:right">Gebühren</th></tr></thead><tbody>
+  ${sold.map(i=>{ const p = S.purchases.find(x=>x.id===i.purchaseId)||{};
+    return `<tr><td class="mono">${String(p.beleg||0).padStart(4,"0")}</td><td>${dstr(i.sale.datum)}</td>
+      <td>${esc(i.bez||"")}</td><td>${esc(i.sale.plattform||"")}</td>
+      <td class="n">${num(i.ek).toFixed(2).replace(".",",")}</td>
+      <td class="n">${num(i.sale.vk).toFixed(2).replace(".",",")}</td>
+      <td class="n">${num(i.sale.gebuehren).toFixed(2).replace(".",",")}</td></tr>`;}).join("")}
+  </tbody></table>
+  <div class="ptot">Erlöse ${eur(brutto)} · Gebühren ${eur(geb)} · Porto ${eur(por)} · Verpackung ${eur(ver)}<br>
+  Eingesetzter Wareneinkauf ${eur(ek)} · Deckungsbeitrag ${eur(brutto-geb-por-ver-ek)}</div>
+  <p class="pnote">${sold.length} Verkäufe. Kleinunternehmerregelung nach § 19 UStG — die Erlöse sind Bruttobeträge ohne ausgewiesene Umsatzsteuer.</p></div>`;
+}
+
+function pMonatsUebersicht(){
+  const ps = S.purchases.filter(p=>inYear(p,S.year) && !p.storno && !p.geloescht && imMonat(p.datum));
+  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year) && imMonat(i.sale.datum));
+  const es = S.expenses.filter(e=>inYear(e,S.year) && imMonat(e.datum));
+  const einkauf = ps.reduce((a,p)=>a+num(p.betrag),0);
+  const erloese = sold.reduce((a,i)=>a+num(i.sale.vk),0);
+  const vkNeben = sold.reduce((a,i)=>a+num(i.sale.gebuehren)+num(i.sale.porto)+num(i.sale.verpackung),0);
+  const kosten = es.reduce((a,e)=>a+num(e.betrag),0);
+  const zeile = (k,v,b)=>`<tr><td${b?' style="font-weight:700"':''}>${k}</td><td class="n"${b?' style="font-weight:700"':''}>${v}</td></tr>`;
+  return `<div class="page">${phead(zeitraumText(),"Übersicht")}
+  <table class="ptbl" style="max-width:120mm"><colgroup><col><col style="width:32mm"></colgroup><tbody>
+    ${zeile("Wareneinkauf von Privat", eur(einkauf))}
+    ${zeile("Verkaufserlöse", eur(erloese))}
+    ${zeile("Gebühren, Porto, Verpackung", "− "+eur(vkNeben))}
+    ${zeile("Weitere Betriebsausgaben", "− "+eur(kosten))}
+    ${zeile("Ergebnis", eur(erloese - einkauf - vkNeben - kosten), true)}
+  </tbody></table>
+  <h3 class="psec">Was in diesem Paket liegt</h3>
+  <div class="ptext"><ul>
+    <li>${ps.length} Ankäufe mit Eigenbeleg, jeweils als eigene Seite mit Bildnachweisen</li>
+    <li>${sold.length} Verkäufe mit Erlös, Gebühren und Deckungsbeitrag</li>
+    <li>${es.length} Kostenpositionen${es.filter(e=>(e.shots||[]).length).length?`, davon ${es.filter(e=>(e.shots||[]).length).length} mit hinterlegter Rechnung`:""}</li>
+  </ul></div>
+  <p class="pnote">Erstellt am ${new Date().toLocaleDateString("de-DE")}. Belegnummern sind je Geschäftsjahr fortlaufend — in einem Monatspaket entstehen daher Lücken, die im Jahresjournal geschlossen sind.</p></div>`;
+}
+
 function pVerfahren(){
   const m = S.meta;
   return `<div class="page">${phead("Verfahrensdokumentation","Führung des Ankaufsbuchs")}
@@ -2115,8 +2270,9 @@ function pBlanko(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm">${box()}${box()}${box()}${box()}</div>
     <p class="pnote">Am Stand ausfüllen und unterschreiben lassen, danach abfotografieren und beim Ankauf als Nachweis anhängen.</p></div>`;
 }
-const KINDNAME = {journal:"Ankaufsjournal", belege:"Eigenbelege", marge:"Marge-nach-25a", lager:"Lagerliste",
-  kosten:"Kosten", verfahren:"Verfahrensdokumentation", blanko:"Ankaufbelege-blanko", alles:"Komplettpaket"};
+const KINDNAME = {journal:"Ankaufsjournal", belege:"Eigenbelege", marge:"Marge nach 25a", lager:"Lagerliste",
+  kosten:"Kosten", verkaeufe:"Verkäufe", verfahren:"Verfahrensdokumentation",
+  blanko:"Ankaufbelege blanko", alles:"Komplettpaket", "monat-alle":"Monatspakete"};
 
 const REPORT_CSS = `
 *{box-sizing:border-box}
@@ -2196,23 +2352,56 @@ async function cacheImages(onStep){
 }
 const istApp = ()=> window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
 
+function monatsPaket(){
+  return [pMonatsUebersicht(), pJournal(), pBelege(), pVerkaeufe(), pKosten()].join("");
+}
 async function buildReport(kind, onStep){
-  const braucht = kind==="belege" || kind==="alles";
+  const monat = /^monat/.test(kind);
+  const braucht = kind==="belege" || kind==="kosten" || kind==="alles" || monat;
   if(braucht) await cacheImages(onStep); else S.imgCache = S.imgCache || {};
-  const parts = {journal:pJournal, belege:pBelege, marge:pMarge, lager:pLager, kosten:pKosten, verfahren:pVerfahren, blanko:pBlanko};
-  const inhalt = kind==="alles"
-    ? [pJournal(),pBelege(),pMarge(),pLager(),pKosten(),pVerfahren()].join("")
-    : parts[kind]();
-  const titel = `${KINDNAME[kind]||"Bericht"} ${S.year}`;
+  const parts = {journal:pJournal, belege:pBelege, marge:pMarge, lager:pLager, kosten:pKosten,
+                 verkaeufe:pVerkaeufe, verfahren:pVerfahren, blanko:pBlanko};
+  let inhalt, titel;
+  try{
+    if(kind === "monat-alle"){
+      const teile = [];
+      for(let m=0; m<12; m++){
+        S.pMonat = m;
+        const leer = !S.purchases.some(p=>inYear(p,S.year)&&!p.geloescht&&imMonat(p.datum))
+          && !S.expenses.some(e=>inYear(e,S.year)&&imMonat(e.datum))
+          && !yearItems().some(i=>i.sale&&i.sale.datum.slice(0,4)==String(S.year)&&imMonat(i.sale.datum));
+        if(!leer) teile.push(monatsPaket());
+      }
+      S.pMonat = null;
+      inhalt = teile.length ? teile.join("") + pVerfahren()
+             : `<div class="page">${phead("Monatspakete","Keine Daten")}<p class="ptext">Für ${S.year} wurde noch nichts erfasst.</p></div>`;
+      titel = `Monatspakete ${S.year}`;
+    } else if(monat){
+      S.pMonat = parseInt(kind.split("-")[1],10);
+      inhalt = monatsPaket();
+      titel = `${MONATE[S.pMonat]} ${S.year}`;
+      S.pMonat = null;
+    } else if(kind === "alles"){
+      inhalt = [pJournal(),pBelege(),pVerkaeufe(),pMarge(),pLager(),pKosten(),pVerfahren()].join("");
+      titel = `${KINDNAME[kind]||"Bericht"} ${S.year}`;
+    } else {
+      inhalt = parts[kind]();
+      titel = `${KINDNAME[kind]||"Bericht"} ${S.year}`;
+    }
+  } finally {
+    S.pMonat = null;   // Filter niemals stehen lassen
+  }
   const doc = `<!DOCTYPE html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(titel)}</title><style>${REPORT_CSS}</style></head><body>${inhalt}</body></html>`;
-  return {inhalt, doc, titel, name:`${S.year}-${(KINDNAME[kind]||"bericht").toLowerCase()}.html`};
+  const slug = titel.toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  return {inhalt, doc, titel, name:`${slug}.html`};
 }
 
 async function doPrint(kind){
-  const braucht = kind==="belege" || kind==="alles";
-  openSheet2(KINDNAME[kind]||"Bericht", `
+  const braucht = kind==="belege" || kind==="kosten" || kind==="alles" || /^monat/.test(kind);
+  openSheet2(/^monat-\d+$/.test(kind) ? MONATE[parseInt(kind.split("-")[1],10)] : (KINDNAME[kind]||"Bericht"), `
     <p style="font-size:15px;font-weight:600;margin:0 0 4px">Bericht wird erstellt …</p>
     <p class="hint" id="pgSub">${braucht?"Bilder werden aufbereitet.":"Einen Moment."}</p>
     <div class="prog"><i id="pgBar"></i></div>`, null);
