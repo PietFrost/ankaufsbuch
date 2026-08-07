@@ -1,7 +1,8 @@
 /* Ankaufsbuch — Offline-Cache.
    Programmdateien werden zuerst frisch geholt und nur bei fehlendem Netz
-   aus dem Cache bedient. Deine Daten liegen NICHT hier, sondern in IndexedDB. */
-const CACHE = "ankaufsbuch-v22";
+   aus dem Cache bedient. Deine Daten liegen NICHT hier, sondern in IndexedDB.
+   pdf.js kommt vom CDN und landet nach dem ersten Mal im Cache unten. */
+const CACHE = "ankaufsbuch-v24";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
