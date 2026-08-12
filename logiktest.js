@@ -112,6 +112,98 @@ pruefe(Object.keys(BILDART).length === 4, "BILDART deckt alle vier Datenarten ab
   const k2 = DB.expenses.find(x => x.id === "k2");
   pruefe(k2.shots.length === 1 && k2.shots[0].id === "img1", "der Kostenposten mit Foto ist unverändert");
 
+
+  /* ---------- Verteilung eines Gesamterlöses ---------- */
+  console.log("\nVerteilung einer Verkaufsrunde");
+  function verteile(soll, werte){
+    const ekSum = werte.reduce((a,w)=>a+w.ek,0);
+    let rest = Math.round(soll*100);
+    const out = [];
+    werte.forEach((w,ix)=>{
+      let cent;
+      if(ix === werte.length-1) cent = rest;
+      else { cent = ekSum ? Math.round(soll*100 * w.ek/ekSum) : Math.floor(soll*100/werte.length); rest -= cent; }
+      out.push(cent/100);
+    });
+    return out;
+  }
+  const gesamt = a => Math.round(a.reduce((x,y)=>x+y,0)*100)/100;
+  const zehn = [40,30,25,20,20,15,15,15,10,10].map(ek=>({ek}));
+  const r1 = verteile(1500, zehn);
+  pruefe(gesamt(r1) === 1500, "1500 EUR auf 10 Positionen ergibt in Summe wieder 1500");
+  pruefe(r1[0] === 300, "Verhaeltnis stimmt: 40 von 200 Einkauf ergibt 300 von 1500");
+  pruefe(r1[0] === Math.max(...r1), "die teuerste Position bekommt den groessten Anteil");
+  pruefe(gesamt(verteile(100, [{ek:1},{ek:1},{ek:1}])) === 100, "Drittelung ohne Centverlust");
+  pruefe(gesamt(verteile(999.99, Array.from({length:13},(_,i)=>({ek:i+1})))) === 999.99, "krummer Betrag auf 13 Positionen");
+  const r2 = verteile(100, [{ek:0},{ek:0},{ek:0}]);
+  pruefe(gesamt(r2) === 100 && r2.every(x=>x>0), "bei Einkaufswert 0 wird gleichmaessig verteilt");
+  pruefe(JSON.stringify(verteile(1500,[{ek:200}])) === "[1500]", "eine einzige Position bekommt alles");
+  const diff = (soll, zeilen) => Math.round((soll - zeilen.reduce((a,b)=>a+b,0))*100)/100;
+  pruefe(diff(1500,[500,400,300]) === 300, "offene Differenz wird richtig berechnet");
+  pruefe(diff(1500,[1000,500]) === 0, "keine Differenz bei vollstaendiger Zuordnung");
+
+
+  /* ---------- Kontoauszug einlesen ---------- */
+  console.log("\nKontoauszug einlesen");
+  {
+    const quelle = require("fs").readFileSync(__dirname + "/index.html", "utf8");
+    const skript = quelle.split("<script>")[1].split("</script>")[0];
+    const stueck = (start) => {
+      const i = skript.indexOf(start);
+      if (i < 0) throw new Error("fehlt: " + start);
+      const m = /\n(?:function |const [A-Z])/.exec(skript.slice(i + 10));
+      return skript.slice(i, m ? i + 10 + m.index : i + 2000);
+    };
+    const quellcode = ["function csvZeile", "function csvLesen", "function spalteFinden",
+      "const SPALTEN =", "function datumLesen", "function betragLesen"].map(stueck).join("\n");
+    const L = {};
+    new Function(quellcode + "\nreturn {csvLesen,spalteFinden,SPALTEN,datumLesen,betragLesen,csvZeile};")
+      .call(null) && Object.assign(L, new Function(quellcode +
+        "\nreturn {csvLesen,spalteFinden,SPALTEN,datumLesen,betragLesen,csvZeile};")());
+
+    pruefe(L.datumLesen("04.08.2026") === "2026-08-04", "deutsches Datum wird gelesen");
+    pruefe(L.datumLesen("2026-08-04") === "2026-08-04", "ISO-Datum wird nicht verdreht");
+    pruefe(L.datumLesen("4.8.26") === "2026-08-04", "einstellig mit kurzem Jahr");
+    pruefe(L.datumLesen("Blabla") === null, "unlesbares Datum ergibt null");
+    pruefe(L.betragLesen("1.234,56") === 1234.56, "deutscher Betrag mit Tausenderpunkt");
+    pruefe(L.betragLesen("1,234.56") === 1234.56, "englischer Betrag");
+    pruefe(L.betragLesen("-130,00") === -130, "negativer Betrag bleibt negativ");
+    pruefe(L.betragLesen("130,00 EUR") === 130, "Waehrung wird ignoriert");
+
+    const pp = ['"Datum";"Name";"Brutto";"Gebuehr"',
+                '"04.08.2026";"Kurt Meier";"-130,00";"0,00"',
+                '"05.08.2026";"Whatnot";"1.500,00";"-120,00"'].join("\n");
+    const r = L.csvLesen(pp);
+    pruefe(r.kopf.length === 4 && r.daten.length === 2, "Semikolon-Datei wird zerlegt");
+    pruefe(L.spalteFinden(r.kopf, L.SPALTEN.datum) === 0, "Datumsspalte gefunden");
+    pruefe(L.spalteFinden(r.kopf, L.SPALTEN.betrag) === 2, "Betragsspalte gefunden");
+
+    const wn = ["Date,Item,Buyer,Sale Price,Fees",
+                '2026-08-05,"NES Modul, lose",sammler,45.50,3.64'].join("\n");
+    const w = L.csvLesen(wn);
+    pruefe(w.daten[0][1] === "NES Modul, lose", "Komma in Anfuehrungszeichen bleibt erhalten");
+    pruefe(L.spalteFinden(w.kopf, L.SPALTEN.betrag) === 3, "Whatnot-Preisspalte gefunden");
+    pruefe(L.csvLesen("").daten.length === 0, "leere Datei bricht nicht ab");
+  }
+
+
+  /* ---------- Import: nichts ohne Zutun ---------- */
+  console.log("\nImport — nichts wird ungefragt uebernommen");
+  {
+    const quelle = require("fs").readFileSync(__dirname + "/index.html", "utf8");
+    const skript = quelle.split("<script>")[1].split("</script>")[0];
+    pruefe(/ARTEN = \{weg:"Privat"/.test(skript), "Privat steht an erster Stelle der Auswahl");
+    pruefe(/return merk \|\| "weg";/.test(skript), "ohne gemerkte Zuordnung bleibt jede Zeile privat");
+    pruefe(/z\.art !== "weg"\) merker/.test(skript), "Privat wird nicht als Merker gespeichert");
+    pruefe(/impAus/.test(skript) && /impVor/.test(skript), "Sammelaktionen fuer alles und Vorschlaege vorhanden");
+    pruefe(/impSuch/.test(skript), "Filter ueber Name und Zweck vorhanden");
+    pruefe(/Zeilen bleiben als privat drau/.test(skript), "Bilanz vor dem Anlegen nennt die privaten Zeilen");
+    const artVorschlag = (z, merker) => (merker||{})[(z.name||"").toLowerCase().trim()] || "weg";
+    pruefe(artVorschlag({name:"Netflix", betrag:-12.99}) === "weg", "eine private Ausgabe bleibt drau\u00dfen");
+    pruefe(artVorschlag({name:"Mama", betrag:200}) === "weg", "ein privater Geldeingang bleibt drau\u00dfen");
+    pruefe(artVorschlag({name:"KURT "}, {kurt:"ankauf"}) === "ankauf", "gemerkter Name wird wiedererkannt");
+  }
+
   console.log(fehler ? `\n${fehler} Fehler.\n` : "\nLogik in Ordnung.\n");
   process.exit(fehler ? 1 : 0);
 })();

@@ -186,6 +186,12 @@ nav button.on{color:var(--ink)}
 .hdbtn.alert svg{stroke:var(--stamp)}
 .ebprev{width:100%;border:1px solid var(--rule);border-radius:8px;display:block}
 /* ---------- Verkaufsrunde ---------- */
+.vs{flex:0 0 46px;width:46px;height:46px;border-radius:7px;overflow:hidden;background:var(--rule-2);
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--rule)}
+.vs img{width:100%;height:100%;object-fit:cover;display:block}
+.vs::after{content:"";width:16px;height:16px;border-radius:3px;border:1.5px solid var(--ink-3);opacity:.35}
+.vs:has(img)::after{display:none}
+.beleg .vs{margin:10px 0 10px 10px}
 .rrow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--rule-2);background:var(--card)}
 .rrow:last-child{border-bottom:0}
 .rrow input[type=checkbox]{width:22px;height:22px;flex:0 0 auto;margin:0;accent-color:var(--stamp)}
@@ -194,7 +200,16 @@ nav button.on{color:var(--ink)}
 .rrow .rb span{font-size:11.5px;color:var(--ink-3)}
 .rrow input[type=text]{flex:0 0 92px;padding:8px 9px;text-align:right}
 .rrow.off{opacity:.45}
-.rsum{position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--rule);padding:11px 2px;margin-top:4px}
+.imprw{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--rule-2);background:var(--card)}
+.imprw:last-child{border-bottom:0}
+.imprw.aus{opacity:.45}
+.imprw .ib{flex:1;min-width:0}
+.imprw .ib b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imprw .ib span{display:block;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imprw select{flex:0 0 130px;padding:8px 26px 8px 9px;font-size:13px;background-position:right 8px center}
+.rsum{position:sticky;bottom:calc(-1 * var(--safe-b));z-index:5;background:var(--paper);
+  border-top:1px solid var(--rule);padding:11px 2px calc(11px + var(--safe-b));margin-top:14px;
+  box-shadow:0 -6px 12px -8px rgba(27,36,48,.25)}
 .act{display:flex;align-items:center;gap:11px;width:100%;padding:13px;border-bottom:1px solid var(--rule-2);background:var(--card);text-align:left}
 .act:last-child{border-bottom:0}
 .act .dot{width:9px;height:9px;border-radius:5px;flex:0 0 auto}
@@ -393,6 +408,7 @@ details.fold .fb{padding:13px}
 <div class="toast" id="toast"></div>
 <input type="file" id="filePick" accept="image/*,application/pdf,.pdf" multiple style="display:none">
 <input type="file" id="jsonPick" accept="application/json,.json" style="display:none">
+<input type="file" id="csvPick" accept=".csv,.tsv,.txt,text/csv,text/plain" style="display:none">
 <div id="print"></div>
 
 <script>
@@ -407,13 +423,13 @@ const KAT = {
   gebuehr:"Plattformgebühren", technik:"Technik / Zubehör", buero:"Bürobedarf", sonst:"Sonstiges"
 };
 const ZAHLART = {ueberweisung:"Überweisung", paypal:"PayPal", bar:"Bar", keine:"Keine Zahlung (geschenkt)", sonst:"Sonstiges"};
-const PLATTFORM = ["Kleinanzeigen","eBay","Flohmarkt","Privat direkt","Haushaltsauflösung","Geschenk / Einlage","Sonstige"];
+const PLATTFORM = ["Kleinanzeigen","eBay","Flohmarkt","Privat direkt","Haushaltsauflösung","Geschenk / Einlage","Eigenherstellung","Sonstige"];
 const VK_PLATTFORM = ["Whatnot","eBay","Kleinanzeigen","Vinted","Direkt","Sonstige"];
 const KSHOT = {rechnung:"Rechnung oder Beleg"};
 const SHOT = {ware:"Foto der Ware", anzeige:"Anzeige", chat:"Chatverlauf", zahlung:"Zahlungsnachweis", eigenbeleg:"Eigenbeleg unterschrieben"};
 const VSHOT = {abrechnung:"Abrechnung", rechnung:"Rechnung", versand:"Versandbeleg", zahlung:"Zahlungseingang", sonstiges:"Sonstiges"};
 const RSHOT = {abrechnung:"Abrechnung der Plattform", auszahlung:"Auszahlung", uebersicht:"Verkaufsübersicht", sonstiges:"Sonstiges"};
-const APP_VERSION = "v24";
+const APP_VERSION = "v28";
 const KM_SATZ = 0.30;
 /* Voreingestelltes Logo — in den Stammdaten austauschbar */
 const LOGO_STANDARD = "data:image/png;base64,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";
@@ -629,6 +645,7 @@ function langsteher(){
   });
 }
 function belegQual(p){
+  if(/eigenherstellung/i.test(p.plattform||"")) return 3;   // kein Dritter, nichts zu benennen
   let q = 1;
   const hatOrt = (p.vPlz && p.vPlz.trim()) || (p.vMarkt && p.vMarkt.trim()) || (p.vStand && p.vStand.trim());
   if(p.vName && p.vName.trim() && hatOrt) q++;
@@ -845,8 +862,9 @@ function renderStock(){
     const p = S.purchases.find(x=>x.id===i.purchaseId) || {};
     const diff = i.sale ? num(i.sale.vk)-num(i.ek) : 0;
     return `<button class="beleg" data-item="${i.id}">
-      <div class="stamp" style="background:${i.sale?"var(--ok-soft)":"var(--rule-2)"};flex-basis:64px">
-        <b style="color:${i.sale?"var(--ok)":"var(--ink-2)"};font-size:10px;letter-spacing:.08em">${i.sale?"VERKAUFT":"LAGER"}</b>
+      <div class="vs" data-vorschau="${i.id}"></div>
+      <div class="stamp" style="background:${i.sale?"var(--ok-soft)":"var(--rule-2)"};flex-basis:56px;border-left:1px solid var(--rule-2)">
+        <b style="color:${i.sale?"var(--ok)":"var(--ink-2)"};font-size:9.5px;letter-spacing:.06em">${i.sale?"VERKAUFT":"LAGER"}</b>
         <span style="color:var(--ink-3)">${String(p.beleg||0).padStart(4,"0")}</span>
       </div>
       <div class="body">
@@ -856,6 +874,7 @@ function renderStock(){
       <div class="amt" style="color:${i.sale?(diff>=0?"var(--ok)":"var(--stamp)"):"var(--ink-3)"}">${i.sale?(diff>=0?"+":"")+eur(diff):"—"}</div>
     </button>`;
   }).join("") : `<div class="empty"><b>Nichts gefunden.</b>Positionen entstehen beim Erfassen eines Ankaufs.</div>`;
+  vorschauNachladen(document.getElementById("stockList"));
 }
 
 function renderCosts(){
@@ -901,6 +920,7 @@ function renderOut(){
   const lb = S.meta.lastBackup;
   document.getElementById("dataRows").innerHTML = `
     <button class="linkrow" data-act="backup"><div><div class="l">Sicherung erstellen</div><div class="d">${lb?"Zuletzt "+new Date(lb).toLocaleDateString("de-DE"):"Noch nie gesichert"} · Datei mit allen Bildern</div></div><div class="chev">→</div></button>
+    <button class="linkrow" data-act="import"><div><div class="l">Kontoauszug einlesen</div><div class="d">CSV von PayPal, Bank oder Whatnot — Zeilen einzeln zuordnen</div></div><div class="chev">→</div></button>
     <button class="linkrow" data-act="restore"><div><div class="l">Sicherung einlesen</div><div class="d">Ergänzt fehlende Datensätze, überschreibt nichts</div></div><div class="chev">→</div></button>
     <button class="linkrow" data-act="nummern"><div><div class="l">Belegnummern prüfen</div><div class="d">${doppelteNummern().length ? doppelteNummern().length+" doppelt — sollte repariert werden" : "Alle eindeutig"}</div></div><div class="chev">→</div></button>
     <button class="linkrow" data-act="papierkorb"><div><div class="l">Papierkorb</div><div class="d">${imPapierkorb().length} Belege · ${PAPIERKORB_TAGE} Tage rückholbar</div></div><div class="chev">→</div></button>
@@ -935,6 +955,13 @@ function purchaseForm(p){
   </div>
   <div id="barHint"></div>
 
+  <h2 style="margin-top:22px">Was hast du gekauft?</h2>
+  <div class="field"><select id="f_typ">
+    <option value="einzel" ${p.typ!=="konvolut"?"selected":""}>Einzelstück — ein Gegenstand, ein Verkauf</option>
+    <option value="konvolut" ${p.typ==="konvolut"?"selected":""}>Konvolut — mehrere Teile, die du einzeln verkaufst</option>
+  </select></div>
+  <div id="posWrap"></div>
+
   <h2 style="margin-top:22px">Verkäufer</h2>
   <div id="vWrap"></div>
 
@@ -943,19 +970,43 @@ function purchaseForm(p){
   <button class="btn" id="ebBtn" style="margin-top:10px">Eigenbeleg mit Unterschrift erstellen</button>
   <p class="hint">Der unterschriebene Eigenbeleg ist der stärkste Nachweis, den du bekommen kannst — besonders am Flohmarkt.</p>
 
-  <h2 style="margin-top:22px">Was hast du gekauft?</h2>
-  <div class="field"><select id="f_typ">
-    <option value="einzel" ${p.typ!=="konvolut"?"selected":""}>Einzelstück — ein Gegenstand, ein Verkauf</option>
-    <option value="konvolut" ${p.typ==="konvolut"?"selected":""}>Konvolut — mehrere Teile, die du einzeln verkaufst</option>
-  </select></div>
-  <div id="posWrap"></div>
-
   <div class="field" style="margin-top:18px"><label>Notiz</label><textarea id="f_notiz" placeholder="Zustand, Abholort, Besonderheiten">${esc(p.notiz||"")}</textarea></div>
   ${isNew?"":`<button class="btn danger" id="stornoBtn" style="margin-top:6px">${p.storno?"Storno aufheben":"Beleg stornieren"}</button>
   <button class="btn ghost" id="dupBtn" style="margin-top:8px">Neuen Beleg mit diesen Angaben</button>
   <button class="btn ghost" id="trashBtn" style="margin-top:8px;color:var(--ink-2)">In den Papierkorb (${PAPIERKORB_TAGE} Tage rückholbar)</button>`}`;
 }
 
+/* Kleines Vorschaubild: erstes Warenfoto des Belegs, damit man Positionen wiedererkennt */
+const vorschauCache = new Map();
+async function vorschauFuer(item){
+  if(vorschauCache.has(item.id)) return vorschauCache.get(item.id);
+  const p = S.purchases.find(x=>x.id===item.purchaseId);
+  const kandidaten = [
+    ...(item.shots||[]).filter(x=>!istPDF(x)),
+    ...((p&&p.shots)||[]).filter(x=>x.kind==="ware" && !istPDF(x)),
+    ...((p&&p.shots)||[]).filter(x=>x.kind==="anzeige" && !istPDF(x))
+  ];
+  for(const k of kandidaten){
+    const rec = await getOne("images", k.id);
+    if(rec && rec.blob && (rec.blob.type||"").startsWith("image")){
+      const u = shotURL(k.id, rec.blob);
+      vorschauCache.set(item.id, u);
+      return u;
+    }
+  }
+  vorschauCache.set(item.id, null);
+  return null;
+}
+/* Füllt alle Platzhalter mit data-vorschau nach dem Zeichnen */
+async function vorschauNachladen(wurzel){
+  const felder = (wurzel||document).querySelectorAll("[data-vorschau]");
+  for(const f of felder){
+    const it = S.items.find(x=>x.id===f.dataset.vorschau);
+    if(!it) continue;
+    const u = await vorschauFuer(it);
+    if(u) f.innerHTML = `<img src="${u}" alt="">`;
+  }
+}
 const istPDF = x => (x.typ||x.blob?.type||"").includes("pdf") || /\.pdf$/i.test(x.dateiname||"");
 function kachel(x){
   if(istPDF(x)) return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -1111,6 +1162,10 @@ function updatePosSum(){
 function updateBarHint(){
   const el = document.getElementById("barHint"); if(!el) return;
   const pl = val("f_plattform"), za = val("f_zahlart");
+  if(/eigenherstellung/i.test(pl)){
+    el.innerHTML = `<div class="banner info" style="margin:0 0 12px"><b>Eigenherstellung.</b> Kein Ankauf von privat — es entsteht kein Eigenbeleg über einen Kauf, sondern ein Zugangsbeleg für selbst hergestellte Ware.</div>`;
+    return;
+  }
   if(/geschenk|einlage/i.test(pl) || za==="keine"){
     el.innerHTML = `<div class="banner info" style="margin:0 0 12px"><b>Unentgeltlicher Erwerb.</b> Kaufpreis 0,00 € eintragen. Du hattest keine Betriebsausgabe — beim Verkauf ist der volle Erlös Gewinn. Halte trotzdem fest, von wem und wann, damit der Zugang nachvollziehbar ist.</div>`;
     return;
@@ -1357,6 +1412,50 @@ async function saveEigenbeleg(){
   closeSheet2(); renderShots(); toast("Eigenbeleg angehängt");
 }
 
+/* Deutsche Postleitzahlen — Datei wird erst geladen, wenn ein Adressfeld benutzt wird */
+let PLZ_TABELLE = null, plzLaeuft = null;
+function plzLaden(){
+  if(PLZ_TABELLE) return Promise.resolve(PLZ_TABELLE);
+  if(plzLaeuft) return plzLaeuft;
+  plzLaeuft = fetch("plz.txt").then(r=>r.ok?r.text():"").then(t=>{
+    const nachPlz = new Map(), nachOrt = new Map();
+    t.split("|").forEach(z=>{
+      const [plz, orte] = z.split(":");
+      if(!plz || !orte) return;
+      const liste = orte.split(";");
+      nachPlz.set(plz, liste);
+      liste.forEach(o=>{
+        const k = o.toLowerCase();
+        if(!nachOrt.has(k)) nachOrt.set(k, {name:o, plz:[]});
+        nachOrt.get(k).plz.push(plz);
+      });
+    });
+    PLZ_TABELLE = {nachPlz, nachOrt};
+    return PLZ_TABELLE;
+  }).catch(()=>{ PLZ_TABELLE = {nachPlz:new Map(), nachOrt:new Map()}; return PLZ_TABELLE; });
+  return plzLaeuft;
+}
+/* Vorschläge zu einer Eingabe: "24321" → Orte, "Hohw" → Orte mit PLZ */
+function plzVorschlaege(text){
+  if(!PLZ_TABELLE || !text) return [];
+  const t = text.trim();
+  if(/^\d{2,5}$/.test(t)){
+    const treffer = [];
+    for(const [plz, orte] of PLZ_TABELLE.nachPlz){
+      if(plz.startsWith(t)){ orte.forEach(o=>treffer.push(`${plz} ${o}`)); }
+      if(treffer.length > 40) break;
+    }
+    return treffer.slice(0,20);
+  }
+  if(t.length < 2) return [];
+  const k = t.toLowerCase(), treffer = [];
+  for(const [name, eintrag] of PLZ_TABELLE.nachOrt){
+    if(name.startsWith(k)) eintrag.plz.forEach(z=>treffer.push(`${z} ${eintrag.name}`));
+    if(treffer.length > 40) break;
+  }
+  return treffer.slice(0,20);
+}
+
 /* Vorschlagslisten aus dem, was du schon erfasst hast */
 function datalist(feld){
   const set = [...new Set(S.purchases.map(p=>p[feld]).filter(x=>x && x.trim()))].sort().slice(0,60);
@@ -1371,6 +1470,7 @@ function bekannterVerkaeufer(name){
 /* Welche Verkäuferfelder passen zu welcher Herkunft? */
 function feldSatz(pl){
   if(/flohmarkt/i.test(pl))  return ["markt","stand","sammel","name"];
+  if(/eigenherstellung/i.test(pl)) return [];
   if(/geschenk|einlage/i.test(pl)) return ["name","str","plz"];
   if(/haushalt/i.test(pl))   return ["markt","name","str","plz"];
   if(/kleinanzeigen|ebay/i.test(pl)) return ["nick","name","str","plz"];
@@ -1387,14 +1487,21 @@ function renderVerkaeufer(){
     markt: ["vMarkt","Ort des Marktes","z. B. Flohmarkt Nordmarksportfeld, Kiel",""],
     stand: ["vStand","Stand","z. B. Stand 34, blauer Pavillon",""]
   };
+  if(!set.length){
+    w.innerHTML = `<div class="banner info"><b>Selbst hergestellt.</b> Hier gibt es keinen Verkäufer.
+      Trag als Kaufpreis dein eingesetztes Material ein — oder 0, wenn du das Material schon als Kosten erfasst hast.
+      Doppelt absetzen geht nicht.</div>`;
+    return;
+  }
   w.innerHTML = set.map(k=>{
     if(k==="sammel") return `<label class="check ${v.sammel?"on":""}" id="f_sammelBox">
       <input type="checkbox" id="f_sammel" ${v.sammel?"checked":""}>
       <span class="ct">Sammelankauf über mehrere Stände
       <span class="cs">Ein Beleg für den ganzen Markttag. Einzelne Verkäufer sind dann nicht zuzuordnen.</span></span></label>`;
     const [id,lab,ph,cap] = F[k];
-    const dl = (id==="vName"||id==="vNick"||id==="vMarkt") ? ` list="dl_${id}"` : "";
-    return `<div class="field"><label>${lab}</label><input id="f_${id}"${dl} value="${esc(v[id]||"")}" placeholder="${ph}" ${cap?'autocapitalize="'+cap+'"':""}></div>${dl?datalist(id):""}`;
+    const dl = (id==="vName"||id==="vNick"||id==="vMarkt"||id==="vPlz") ? ` list="dl_${id}"` : "";
+    const hint = id==="vPlz" ? `<p class="hint" style="margin-top:-6px">PLZ oder Ort tippen — der Rest wird vorgeschlagen.</p>` : "";
+    return `<div class="field"><label>${lab}</label><input id="f_${id}"${dl} value="${esc(v[id]||"")}" placeholder="${ph}" ${cap?'autocapitalize="'+cap+'"':""}>${hint}</div>${dl?datalist(id):""}`;
   }).join("")
   + `<p class="hint">${/flohmarkt/i.test(pl)
       ? "Am Markt reicht der Name allein oft nicht — lass den Eigenbeleg unterschreiben, das ersetzt die fehlende Anschrift."
@@ -1408,6 +1515,16 @@ function renderVerkaeufer(){
     const el = document.getElementById("f_"+F[k][0]);
     if(!el) return;
     el.oninput = e=> v[F[k][0]] = e.target.value;
+    if(F[k][0]==="vPlz"){
+      const liste = el.list;   // native Verknüpfung, kein Suchen über den Namen
+      plzLaden().then(()=>{
+        el.addEventListener("input", ()=>{
+          const vor = plzVorschlaege(el.value);
+          if(liste && vor.length) liste.innerHTML = vor.map(x=>`<option value="${esc(x)}"></option>`).join("");
+        });
+        el.dispatchEvent(new Event("input"));
+      });
+    }
     if(F[k][0]==="vName") el.onchange = ()=>{
       const alt2 = bekannterVerkaeufer(el.value);
       if(alt2 && !v.vStr && !v.vPlz && (alt2.vStr || alt2.vPlz)){
@@ -1449,6 +1566,9 @@ async function loadShots(p){
 function bindPurchaseForm(p){
   renderShots(); renderPositions(); updateBarHint(); renderVerkaeufer();
   document.getElementById("f_plattform").onchange = ()=>{
+    if(/eigenherstellung/i.test(val("f_plattform"))){
+      document.getElementById("f_zahlart").value = "keine";
+    }
     if(/geschenk|einlage/i.test(val("f_plattform"))){
       document.getElementById("f_zahlart").value = "keine";
       if(!num(val("f_betrag"))) document.getElementById("f_betrag").value = "0";
@@ -1602,18 +1722,27 @@ function openItem(id){
 }
 function openSplit(it){
   const p = S.purchases.find(x=>x.id===it.purchaseId)||{};
+  S.draft = {shots:[], nachweisZiel:{grid:"spShotGrid", arten:VSHOT}};   // eigener Ablageort für die neue Position
   openSheet2("Position aufteilen", `
     <p class="hint" style="margin-bottom:14px">Aus <b>${esc(it.bez||"dieser Position")}</b> mit einem Einkaufswert von <b class="mono">${eur(it.ek)}</b> werden zwei. Nutz das, wenn du nur einen Teil verkaufst — etwa die PS2 aus einem Konsolen-Konvolut.</p>
     <div class="field"><label>Abgetrennter Teil</label><input id="sp_bez" placeholder="z. B. PlayStation 2 Slim" autocapitalize="words"></div>
     <div class="field"><label>Einkaufswert davon €</label><input class="num" inputmode="decimal" id="sp_ek" placeholder="0,00"></div>
     <div class="banner info" id="sp_rest"></div>
     <div class="field"><label>Rest heißt künftig</label><input id="sp_restbez" value="${esc(it.bez||"")}"></div>
+    ${nachweisFeld("spShotGrid","Bilder zum abgetrennten Teil","Foto des Einzelstücks, damit du es später wiedererkennst.")}
   `, async ()=>{
     const bez = document.getElementById("sp_bez").value.trim();
     const ek = num(document.getElementById("sp_ek").value);
     if(!bez){ toast("Bezeichnung fehlt"); return; }
     if(ek <= 0 || ek >= num(it.ek)){ toast("Einkaufswert muss zwischen 0 und " + eur(it.ek) + " liegen"); return; }
-    await put("items", {id:uid(), purchaseId:it.purchaseId, year:it.year, bez, ek:Math.round(ek*100)/100, sale:null});
+    const neuId = uid();
+    const bilder = [];
+    for(const x of (S.draft?.shots||[])){
+      await put("images",{id:x.id, blob:x.blob, art:"position", dateiname:x.dateiname||null, typ:x.typ||null});
+      bilder.push({id:x.id, kind:x.kind, dateiname:x.dateiname||null, typ:x.typ||null});
+    }
+    await put("items", {id:neuId, purchaseId:it.purchaseId, year:it.year, bez,
+      ek:Math.round(ek*100)/100, sale:null, shots:bilder});
     it.bez = document.getElementById("sp_restbez").value.trim() || it.bez;
     it.ek = Math.round((num(it.ek)-ek)*100)/100;
     await put("items", it);
@@ -1627,8 +1756,8 @@ function openSplit(it){
        <div class="dl"><dt>Bleibt bei der Position</dt><dd style="color:${rest<0?"var(--stamp)":"var(--ink)"}">${eur(rest)}</dd></div>`;
   };
   document.getElementById("sp_ek").oninput = upd;
-  document.getElementById("sp_bez").oninput = ()=>{};
   upd();
+  renderShots();
 }
 
 async function saveItem(it){
@@ -1640,6 +1769,255 @@ async function saveItem(it){
   it.shots = await sichereNachweise("verkaufsbeleg", it.id);
   await put("items",it); await reload(); closeSheet();
   toast(it.shots.length ? `Gesichert · ${it.shots.length} Nachweis${it.shots.length>1?"e":""} ✓` : "Gesichert");
+}
+
+/* ---------------- Kontoauszug einlesen ---------------- */
+/* Zerlegt eine Zeile mit Anführungszeichen-Behandlung */
+function csvZeile(text, trenn){
+  const felder = []; let feld = "", inAnf = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inAnf){
+      if(c === '"' && text[i+1] === '"'){ feld += '"'; i++; }
+      else if(c === '"') inAnf = false;
+      else feld += c;
+    } else if(c === '"') inAnf = true;
+    else if(c === trenn){ felder.push(feld); feld = ""; }
+    else feld += c;
+  }
+  felder.push(feld);
+  return felder.map(f=>f.trim());
+}
+function csvLesen(text){
+  text = text.replace(/^\uFEFF/, "");
+  const zeilen = text.split(/\r?\n/).filter(z=>z.trim());
+  if(!zeilen.length) return {kopf:[], daten:[]};
+  const kandidaten = [";", ",", "\t", "|"];
+  const trenn = kandidaten.map(c=>({c, n:csvZeile(zeilen[0], c).length}))
+    .sort((a,b)=>b.n-a.n)[0].c;
+  const kopf = csvZeile(zeilen[0], trenn);
+  const daten = zeilen.slice(1).map(z=>csvZeile(z, trenn)).filter(r=>r.some(x=>x));
+  return {kopf, daten, trenn};
+}
+/* Findet die passende Spalte anhand bekannter Bezeichnungen */
+function spalteFinden(kopf, muster){
+  for(const m of muster){
+    const ix = kopf.findIndex(k=>k.toLowerCase().replace(/[^a-zäöüß]/g,"") === m);
+    if(ix >= 0) return ix;
+  }
+  for(const m of muster){
+    const ix = kopf.findIndex(k=>k.toLowerCase().includes(m));
+    if(ix >= 0) return ix;
+  }
+  return -1;
+}
+const SPALTEN = {
+  datum:   ["datum","date","buchungstag","valuta","wertstellung","zeitpunkt"],
+  name:    ["name","empfänger","empfaenger","beteiligter","auftraggeber","zahlungspflichtiger","verkäufer","käufer","kunde","buyer","seller","counterparty","gegenkonto","username"],
+  betrag:  ["brutto","gross","betrag","amount","umsatz","summe","total","wert","saleprice","preis","price","erlös","erloes","einzelpreis","zahlbetrag"],
+  gebuehr: ["gebühr","gebuehr","fee","provision","fees","kommission","commission"],
+  netto:   ["netto","net"],
+  zweck:   ["verwendungszweck","betreff","subject","hinweis","note","beschreibung","description","typ","type","artikel","item","itemtitle","produkt","itemname","bezeichnung","product"],
+  id:      ["transaktionscode","transaktionsnummer","transactionid","belegnummer","id","referenz","order"]
+};
+/* Datum aus verschiedenen Schreibweisen */
+function datumLesen(t){
+  if(!t) return null;
+  t = String(t);
+  // Jahr zuerst (2026-08-04, 2026/08/04) — muss vor dem deutschen Muster stehen
+  let m = t.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(m) return `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
+  // Tag zuerst (04.08.2026, 4/8/26)
+  m = t.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
+  if(m){
+    let [, tg, mo, jr] = m;
+    if(jr.length === 2) jr = "20" + jr;
+    const tgZ = parseInt(tg,10), moZ = parseInt(mo,10);
+    if(tgZ > 31 || moZ > 12) return null;
+    return `${jr}-${String(moZ).padStart(2,"0")}-${String(tgZ).padStart(2,"0")}`;
+  }
+  return null;
+}
+/* Betrag aus deutscher oder englischer Schreibweise */
+function betragLesen(t){
+  if(t === undefined || t === null) return 0;
+  let x = String(t).replace(/[^\d,.\-]/g, "").trim();
+  if(!x) return 0;
+  const kommaLetzt = x.lastIndexOf(","), punktLetzt = x.lastIndexOf(".");
+  if(kommaLetzt > punktLetzt) x = x.replace(/\./g, "").replace(",", ".");
+  else x = x.replace(/,/g, "");
+  const z = parseFloat(x);
+  return isFinite(z) ? z : 0;
+}
+
+/* Sichtung: jede Zeile durchgehen und einordnen */
+const ARTEN = {weg:"Privat", ankauf:"Ankauf", verkauf:"Verkauf", kosten:"Kosten"};
+/* Nichts wird ungefragt übernommen: alles startet auf Privat.
+   Nur was du selbst zuordnest — oder bei einem früheren Import zugeordnet hast — kommt ins Buch. */
+function artVorschlag(z){
+  const merk = (S.meta.importMerker||{})[(z.name||"").toLowerCase().trim()];
+  return merk || "weg";
+}
+/* Was die App aus der Zeile herausliest — als Vorschlag, nicht als Vorbelegung */
+function artHinweis(z){
+  const txt = ((z.name||"") + " " + (z.zweck||"")).toLowerCase();
+  if(/gebühr|gebuehr|fee|provision|porto|versand|dhl|hermes|post|verpackung/.test(txt)) return "kosten";
+  return z.betrag > 0 ? "verkauf" : "ankauf";
+}
+function openImport(){
+  document.getElementById("csvPick").click();
+}
+async function importSichten(datei){
+  let text = "";
+  try{ text = await datei.text(); }catch(e){ toast("Datei nicht lesbar"); return; }
+  const {kopf, daten} = csvLesen(text);
+  if(!daten.length){ toast("Keine Zeilen gefunden"); return; }
+
+  const ix = {
+    datum:   spalteFinden(kopf, SPALTEN.datum),
+    name:    spalteFinden(kopf, SPALTEN.name),
+    betrag:  spalteFinden(kopf, SPALTEN.betrag),
+    gebuehr: spalteFinden(kopf, SPALTEN.gebuehr),
+    zweck:   spalteFinden(kopf, SPALTEN.zweck),
+    id:      spalteFinden(kopf, SPALTEN.id)
+  };
+  if(ix.datum < 0 || ix.betrag < 0){
+    openSheet2("Import", `<div class="banner bad"><b>Spalten nicht erkannt.</b>
+      In der Datei fehlt eine erkennbare Datums- oder Betragsspalte.<br><br>
+      Gefundene Spalten: ${kopf.map(k=>esc(k)).join(" · ") || "keine"}</div>
+      <p class="hint">Exportiere bei PayPal unter Aktivitäten → Berichte → Aktivitätsbericht als CSV. Bei Whatnot die Verkaufs- oder Auszahlungsübersicht.</p>`, null);
+    return;
+  }
+
+  // Bereits erfasste Vorgänge erkennen
+  const bekannt = new Set();
+  S.purchases.forEach(p=>{ if(p.datum) bekannt.add(p.datum + "#" + num(p.betrag).toFixed(2)); });
+  S.items.forEach(i=>{ if(i.sale) bekannt.add(i.sale.datum + "#" + num(i.sale.vk).toFixed(2)); });
+  S.expenses.forEach(e=>{ if(e.datum) bekannt.add(e.datum + "#" + num(e.betrag).toFixed(2)); });
+
+  S.imp = daten.map((r,nr)=>{
+    const betrag = betragLesen(r[ix.betrag]);
+    const z = {
+      nr,
+      datum: datumLesen(r[ix.datum]),
+      name: ix.name >= 0 ? r[ix.name] : "",
+      zweck: ix.zweck >= 0 ? r[ix.zweck] : "",
+      gebuehr: ix.gebuehr >= 0 ? Math.abs(betragLesen(r[ix.gebuehr])) : 0,
+      betrag,
+      rohbetrag: Math.abs(betrag)
+    };
+    z.doppelt = z.datum ? bekannt.has(z.datum + "#" + z.rohbetrag.toFixed(2)) : false;
+    z.art = z.doppelt ? "weg" : artVorschlag(z);
+    z.hinweis = artHinweis(z);
+    return z;
+  }).filter(z=>z.datum && z.rohbetrag);
+
+  if(!S.imp.length){ toast("Keine brauchbaren Zeilen"); return; }
+  zeigeImport();
+}
+function zeigeImport(){
+  const zahl = a => S.imp.filter(z=>z.art===a).length;
+  const dop = S.imp.filter(z=>z.doppelt).length;
+  openSheet2("Kontoauszug einlesen", `
+    <div class="banner info"><b>${S.imp.length} Zeilen gelesen.</b>
+      Es steht zunächst alles auf <b>Privat</b> — es wird nichts übernommen, was du nicht selbst zuordnest.
+      ${dop?`<br>${dop} Zeilen sehen aus, als wären sie schon erfasst.`:""}</div>
+    <div class="field"><input id="impSuch" placeholder="Nach Name oder Zweck filtern …" autocapitalize="none"></div>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn ghost" id="impVor" style="margin:0;font-size:13.5px;padding:10px">Vorschläge übernehmen</button>
+      <button class="btn ghost" id="impAus" style="margin:0;font-size:13.5px;padding:10px">Alles auf Privat</button>
+    </div>
+    <p class="hint" style="margin:-4px 0 12px">„Vorschläge übernehmen“ setzt jede noch offene Zeile auf das, was die App vermutet — Ausgaben auf Ankauf, Eingänge auf Verkauf, Porto und Gebühren auf Kosten. Geh sie danach trotzdem durch.</p>
+    <div class="card" id="impListe"></div>
+    <div class="rsum" id="impSum"></div>`, ()=>importUebernehmen(), "Übernehmen");
+  document.getElementById("impSuch").oninput = zeichneImport;
+  document.getElementById("impVor").onclick = ()=>{
+    S.imp.forEach(z=>{ if(z.art === "weg" && !z.doppelt) z.art = z.hinweis; });
+    zeichneImport(); toast("Vorschläge gesetzt — bitte prüfen");
+  };
+  document.getElementById("impAus").onclick = ()=>{
+    S.imp.forEach(z=> z.art = "weg");
+    zeichneImport(); toast("Alles auf Privat");
+  };
+  zeichneImport();
+}
+function zeichneImport(){
+  const box = document.getElementById("impListe");
+  const q = (document.getElementById("impSuch")?.value||"").toLowerCase().trim();
+  const liste = q ? S.imp.filter(z=>((z.name||"")+" "+(z.zweck||"")).toLowerCase().includes(q)) : S.imp;
+  box.innerHTML = liste.length ? liste.map(z=>`
+    <div class="imprw ${z.art==="weg"?"aus":""}">
+      <div class="ib">
+        <b>${esc(z.name||z.zweck||"ohne Bezeichnung")}</b>
+        <span>${dstr(z.datum)} · ${z.betrag<0?"−":"+"}${eur(z.rohbetrag)}${z.gebuehr?` · Gebühr ${eur(z.gebuehr)}`:""}${z.doppelt?` · <span style="color:var(--stamp)">wohl schon erfasst</span>`:""}</span>
+        ${z.zweck && z.name ? `<span style="opacity:.7">${esc(z.zweck.slice(0,70))}</span>`:""}
+      </div>
+      <select data-imp="${z.nr}">${Object.entries(ARTEN).map(([k,v])=>`<option value="${k}" ${z.art===k?"selected":""}>${v}${k===z.hinweis&&k!=="weg"?" ·":""}</option>`).join("")}</select>
+    </div>`).join("")
+    : `<div class="empty"><b>Keine Zeile passt zum Filter.</b></div>`;
+  box.querySelectorAll("[data-imp]").forEach(sel=> sel.onchange = e=>{
+    const z = S.imp.find(x=>x.nr === parseInt(sel.dataset.imp,10));
+    z.art = e.target.value;
+    sel.closest(".imprw").classList.toggle("aus", z.art==="weg");
+    impSumme();
+  });
+  impSumme();
+}
+function impSumme(){
+  const s2 = a => S.imp.filter(z=>z.art===a);
+  const el = document.getElementById("impSum"); if(!el) return;
+  const rein = S.imp.filter(z=>z.art!=="weg").length;
+  el.innerHTML = ["ankauf","verkauf","kosten"].map(a=>
+    `<div class="dl"><dt>${ARTEN[a]}</dt><dd>${s2(a).length} · ${eur(s2(a).reduce((x,z)=>x+z.rohbetrag,0))}</dd></div>`).join("")
+    + `<div class="dl"><dt>Privat — bleibt draußen</dt><dd>${s2("weg").length}</dd></div>
+       <div class="dl"><dt><b>Wird übernommen</b></dt><dd><b>${rein}</b> von ${S.imp.length}</dd></div>`;
+}
+async function importUebernehmen(){
+  const nehmen = S.imp.filter(z=>z.art !== "weg");
+  if(!nehmen.length){ toast("Nichts ausgewählt"); return; }
+  const zaehl = a => nehmen.filter(z=>z.art===a).length;
+  const privat = S.imp.length - nehmen.length;
+  if(!confirm(`${nehmen.length} von ${S.imp.length} Zeilen übernehmen?\n\n`
+    + `${zaehl("ankauf")} Ankäufe · ${zaehl("verkauf")} Verkäufe · ${zaehl("kosten")} Kosten\n`
+    + `${privat} Zeilen bleiben als privat draußen.\n\n`
+    + `Bilder und Nachweise musst du danach von Hand anhängen.`)) return;
+
+  const merker = {...(S.meta.importMerker||{})};
+  let anz = 0;
+  for(const z of nehmen){
+    const jahr = parseInt(z.datum.slice(0,4),10);
+    if(z.name && z.art !== "weg") merker[z.name.toLowerCase().trim()] = z.art;
+    const notiz = `Nachträglich aus einem Kontoauszug übernommen am ${new Date().toLocaleDateString("de-DE")}.${z.zweck?" Verwendungszweck: "+z.zweck:""}`;
+    if(z.art === "ankauf"){
+      const pid = uid();
+      await put("purchases", {id:pid, year:jahr, beleg:nextBeleg(jahr), datum:z.datum, betrag:z.rohbetrag,
+        zahlart:"ueberweisung", plattform:"Sonstige", typ:"einzel",
+        vName:z.name||"", bez:z.zweck||z.name||"Ankauf", notiz,
+        storno:false, created:Date.now(), shots:[], ausImport:true});
+      await put("items", {id:uid(), purchaseId:pid, year:jahr, bez:z.zweck||z.name||"Ankauf", ek:z.rohbetrag, sale:null, shots:[]});
+      anz++;
+    } else if(z.art === "kosten"){
+      await put("expenses", {id:uid(), year:jahr, beleg:nextKBeleg(jahr), datum:z.datum,
+        kat:"sonst", betrag:z.rohbetrag, km:null, notiz:(z.name?z.name+" — ":"")+notiz, shots:[], ausImport:true});
+      anz++;
+    } else if(z.art === "verkauf"){
+      const pid = uid();
+      await put("purchases", {id:pid, year:jahr, beleg:nextBeleg(jahr), datum:z.datum, betrag:0,
+        zahlart:"keine", plattform:"Geschenk / Einlage", typ:"einzel",
+        bez:z.zweck||z.name||"Verkauf", vName:"",
+        notiz:`Zugang nachgetragen zu einem Verkauf aus dem Kontoauszug. Einkaufswert unbekannt — bitte prüfen. ${notiz}`,
+        storno:false, created:Date.now(), shots:[], ausImport:true});
+      await put("items", {id:uid(), purchaseId:pid, year:jahr, bez:z.zweck||z.name||"Verkauf", ek:0, shots:[],
+        sale:{datum:z.datum, plattform:"Sonstige", vk:z.rohbetrag,
+              gebuehren:z.gebuehr||0, porto:0, verpackung:0}});
+      anz++;
+    }
+  }
+  S.meta.importMerker = merker;
+  await put("meta",{id:"stamm", ...S.meta});
+  S.imp = null;
+  await reload(); closeSheet2();
+  toast(`${anz} Vorgänge angelegt — bitte nacharbeiten`);
 }
 
 /* ---------------- Suche über alles ---------------- */
@@ -1739,7 +2117,7 @@ async function openRunde(id){
   const ev = id ? evs.find(e=>e.id===id) : null;
   const lager = yearItems().filter(i=>!i.sale || (ev && i.sale.eventId===ev.id));
   if(!lager.length && !ev){ toast("Nichts auf Lager"); return; }
-  S.runde = {sel:{}, preise:{}};
+  S.runde = {sel:{}, preise:{}, geschaetzt: !!(ev && ev.geschaetzt)};
   if(ev) S.items.filter(i=>i.sale && i.sale.eventId===ev.id).forEach(i=>{ S.runde.sel[i.id]=true; S.runde.preise[i.id]=i.sale.vk; });
   S.draft = {shots:[], nachweisZiel:{grid:"rShotGrid", arten:RSHOT}};
   if(ev) ladeNachweise(ev);
@@ -1755,11 +2133,12 @@ async function openRunde(id){
       <div class="field"><label>Umsatz laut Plattform €</label><input class="num" inputmode="decimal" id="r_soll" value="${ev&&ev.soll?ev.soll:""}" placeholder="optional"></div>
     </div>
     <p class="hint">Die Gebühren werden auf jede Zeile umgelegt. Trägst du den Umsatz laut Plattform ein, prüft die App gegen deine Zeilen.</p>
+    <div id="r_werkzeug"></div>
     <h2 style="margin-top:20px">Was ist weggegangen?</h2>
     <div class="field"><input id="r_such" placeholder="Suchen …"></div>
     <div class="card" id="r_liste"></div>
-    <div class="rsum" id="r_sum"></div>
     ${nachweisFeld("rShotGrid","Nachweise zur Runde","Die Abrechnung der Plattform oder der Auszahlungsbeleg — gilt für die ganze Runde, nicht je Position.")}
+    <div class="rsum" id="r_sum"></div>
   `, ()=>saveRunde(ev), "Übernehmen");
   renderShots();
 
@@ -1771,13 +2150,26 @@ async function openRunde(id){
       const an = !!S.runde.sel[i.id];
       return `<div class="rrow ${an?"":"off"}" data-rid="${i.id}">
         <input type="checkbox" ${an?"checked":""} data-rchk="${i.id}">
-        <div class="rb"><b>${esc(i.bez||"Position")}</b><span>Beleg ${String(p.beleg||0).padStart(4,"0")} · EK ${eur(i.ek)}</span></div>
-        <input type="text" inputmode="decimal" class="num" data-rvk="${i.id}" value="${S.runde.preise[i.id]??""}" placeholder="VK €">
+        <div class="vs" data-vorschau="${i.id}"></div>
+        <div class="rb"><b>${esc(i.bez||"Position")}</b>
+          <span>${String(p.beleg||0).padStart(4,"0")} · ${dstr(p.datum)} · EK ${eur(i.ek)}</span></div>
+        <input type="text" inputmode="decimal" class="num" data-rvk="${i.id}"
+          value="${S.runde.preise[i.id]??""}" placeholder="${num(i.ek).toFixed(2).replace(".",",")}">
       </div>`;
     }).join("") : `<div class="empty"><b>Nichts gefunden.</b></div>`;
+    vorschauNachladen(document.getElementById("r_liste"));
     document.querySelectorAll("[data-rchk]").forEach(c=> c.onchange = e=>{
-      S.runde.sel[c.dataset.rchk] = e.target.checked;
+      const id = c.dataset.rchk;
+      S.runde.sel[id] = e.target.checked;
       c.closest(".rrow").classList.toggle("off", !e.target.checked);
+      if(e.target.checked && !num(S.runde.preise[id])){
+        const it = S.items.find(x=>x.id===id);
+        if(it && num(it.ek)){
+          S.runde.preise[id] = String(num(it.ek)).replace(".",",");
+          const f = c.closest(".rrow").querySelector("[data-rvk]");
+          if(f) f.value = S.runde.preise[id];
+        }
+      }
       summe();
     });
     document.querySelectorAll("[data-rvk]").forEach(f=> f.oninput = e=>{
@@ -1792,6 +2184,78 @@ async function openRunde(id){
     });
     summe();
   };
+  /* Verteilt einen Gesamtbetrag anteilig nach Einkaufswert auf die angehakten Zeilen */
+  const verteilen = ()=>{
+    const ids = Object.keys(S.runde.sel).filter(k=>S.runde.sel[k]);
+    if(!ids.length){ toast("Erst Positionen anhaken"); return; }
+    const soll = num(document.getElementById("r_soll").value);
+    if(!soll){ toast("Umsatz laut Plattform fehlt"); return; }
+    const werte = ids.map(k=>{ const it = S.items.find(x=>x.id===k); return {id:k, ek:num(it?it.ek:0)}; });
+    const ekSum = werte.reduce((a,w)=>a+w.ek,0);
+    if(!confirm(`${eur(soll)} auf ${ids.length} Positionen verteilen?\n\n${ekSum
+      ? "Aufteilung im Verhältnis der Einkaufswerte."
+      : "Alle Einkaufswerte sind 0 — es wird gleichmäßig verteilt."}\n\nDas ist eine Schätzung. Vorhandene Preise werden überschrieben.`)) return;
+    let rest = Math.round(soll*100);
+    werte.forEach((w,ix)=>{
+      let cent;
+      if(ix === werte.length-1) cent = rest;
+      else {
+        cent = ekSum ? Math.round(soll*100 * w.ek/ekSum) : Math.floor(soll*100/werte.length);
+        rest -= cent;
+      }
+      S.runde.preise[w.id] = (cent/100).toFixed(2).replace(".",",");
+    });
+    S.runde.geschaetzt = true;
+    zeilen();
+    toast("Verteilt — bitte gegenprüfen");
+  };
+
+  /* Trägt die Differenz zum Plattform-Umsatz als neuen Zugang samt Verkauf ein */
+  const restposten = ()=>{
+    const ids = Object.keys(S.runde.sel).filter(k=>S.runde.sel[k]);
+    const brutto = ids.reduce((a,k)=>a+num(S.runde.preise[k]),0);
+    const soll = num(document.getElementById("r_soll").value);
+    const diff = Math.round((soll-brutto)*100)/100;
+    if(diff <= 0){ toast("Keine offene Differenz"); return; }
+    openSheet2("Restposten erfassen", `
+      <div class="banner warn"><b>${eur(diff)} sind noch nicht zugeordnet.</b>
+        Wenn dafür Ware weggegangen ist, die nicht im Bestand steht, muss sie nachgetragen werden —
+        sonst steht Geld im Buch, zu dem es keine Ware gibt.</div>
+      <div class="field"><label>Was war das?</label><input id="rp_bez" placeholder="z. B. diverse Kleinteile aus dem Stream" autocapitalize="sentences"></div>
+      <div class="field"><label>Woher stammt die Ware?</label><select id="rp_herkunft">
+        <option value="privat">Aus meinem Privatbestand (Einlage)</option>
+        <option value="eigen">Selbst hergestellt</option>
+        <option value="ankauf">Angekauft, aber noch nicht erfasst</option>
+      </select></div>
+      <div class="field"><label>Einkaufswert oder Materialeinsatz €</label><input class="num" inputmode="decimal" id="rp_ek" value="0" placeholder="0,00"></div>
+      <div class="field"><label>Erlös €</label><input class="num" inputmode="decimal" id="rp_vk" value="${diff.toFixed(2).replace(".",",")}"></div>
+      <p class="hint">Es entsteht ein eigener Zugangsbeleg mit Datum der Verkaufsrunde. Die Position gilt sofort als verkauft.</p>
+    `, async ()=>{
+      const bez = document.getElementById("rp_bez").value.trim();
+      if(!bez){ toast("Bezeichnung fehlt"); return; }
+      const vk = num(document.getElementById("rp_vk").value);
+      const ek = num(document.getElementById("rp_ek").value);
+      if(!vk){ toast("Erlös fehlt"); return; }
+      const datum = val("r_datum")||today();
+      const jahr = parseInt(datum.slice(0,4),10);
+      const h = document.getElementById("rp_herkunft").value;
+      const plattform = h==="eigen" ? "Eigenherstellung" : h==="privat" ? "Geschenk / Einlage" : "Sonstige";
+      const pid = uid();
+      await put("purchases", {id:pid, year:jahr, beleg:nextBeleg(jahr), datum, betrag:ek,
+        zahlart:"keine", plattform, typ:"einzel", bez,
+        notiz:`Nachtrag aus der Verkaufsrunde vom ${dstr(datum)} — Ware war beim Verkauf noch nicht im Bestand erfasst.`,
+        storno:false, created:Date.now(), shots:[]});
+      const iid = uid();
+      await put("items", {id:iid, purchaseId:pid, year:jahr, bez, ek, sale:null, shots:[]});
+      S.runde.sel[iid] = true;
+      S.runde.preise[iid] = vk.toFixed(2).replace(".",",");
+      await reload(); closeSheet2();
+      toast("Zugang nachgetragen und angehakt");
+      lager.push(S.items.find(x=>x.id===iid));
+      zeilen();
+    }, "Nachtragen");
+  };
+
   const summe = ()=>{
     const ids = Object.keys(S.runde.sel).filter(k=>S.runde.sel[k]);
     const brutto = ids.reduce((a,k)=>a+num(S.runde.preise[k]),0);
@@ -1805,7 +2269,17 @@ async function openRunde(id){
       <div class="dl"><dt>Gebühren ${gebP||0} %</dt><dd>− ${eur(geb)}</dd></div>
       <div class="dl"><dt>Einkaufswert</dt><dd>− ${eur(ek)}</dd></div>
       <div class="dl"><dt><b>Bleibt</b></dt><dd style="color:${brutto-geb-ek<0?"var(--stamp)":"var(--ok)"}"><b>${eur(brutto-geb-ek)}</b></dd></div>
-      ${soll?`<div class="dl"><dt>Gegen Plattform</dt><dd style="color:${Math.abs(diff)<0.01?"var(--ok)":"var(--stamp)"}">${Math.abs(diff)<0.01?"passt":eur(diff)+" offen"}</dd></div>`:""}`;
+      ${soll?`<div class="dl"><dt>Gegen Plattform</dt><dd style="color:${Math.abs(diff)<0.01?"var(--ok)":"var(--stamp)"}">${Math.abs(diff)<0.01?"passt":eur(diff)+" offen"}</dd></div>`:""}
+      ${S.runde.geschaetzt?`<p class="hint" style="margin-top:8px">Die Preise wurden anteilig geschätzt. Der Vermerk läuft in den Beleg mit.</p>`:""}`;
+
+    const wz = document.getElementById("r_werkzeug");
+    if(wz){
+      wz.innerHTML = soll ? `
+        <button class="btn ghost" id="r_verteilen" style="margin-bottom:8px">${eur(soll)} anteilig auf ${ids.length} Positionen verteilen</button>
+        ${diff > 0.01 ? `<button class="btn ghost" id="r_rest" style="margin-bottom:8px;color:var(--stamp)">${eur(diff)} als Restposten nachtragen</button>` : ""}` : "";
+      const bv = document.getElementById("r_verteilen"); if(bv) bv.onclick = verteilen;
+      const br = document.getElementById("r_rest");      if(br) br.onclick = restposten;
+    }
   };
   document.getElementById("r_such").oninput = zeilen;
   ["r_geb","r_soll"].forEach(k=> document.getElementById(k).oninput = summe);
@@ -1825,7 +2299,8 @@ async function saveRunde(ev){
   if(ohne.length && !confirm(`${ohne.length} Position(en) ohne Preis. Trotzdem übernehmen? Sie bleiben dann auf Lager.`)) return;
   const datum = val("r_datum")||today(), plat = val("r_plat"), gebP = num(val("r_geb"));
   const rec = {id: ev?ev.id:uid(), year: parseInt(datum.slice(0,4),10), datum, plattform:plat,
-               titel: val("r_titel")||`${plat} ${dstr(datum)}`, geb:gebP, soll:num(val("r_soll"))||null};
+               titel: val("r_titel")||`${plat} ${dstr(datum)}`, geb:gebP, soll:num(val("r_soll"))||null,
+               geschaetzt: !!S.runde.geschaetzt};
   rec.shots = await sichereNachweise("rundenbeleg", rec.id);
   await put("events", rec);
   let n = 0;
@@ -1833,7 +2308,8 @@ async function saveRunde(ev){
     const vk = num(S.runde.preise[k]); if(!vk) continue;
     const it = S.items.find(x=>x.id===k); if(!it) continue;
     it.sale = {datum, plattform:plat, vk, gebuehren: Math.round(vk*gebP)/100,
-               porto: it.sale?num(it.sale.porto):0, verpackung: it.sale?num(it.sale.verpackung):0, eventId:rec.id};
+               porto: it.sale?num(it.sale.porto):0, verpackung: it.sale?num(it.sale.verpackung):0,
+               eventId:rec.id, geschaetzt: !!S.runde.geschaetzt};
     await put("items", it); n++;
   }
   await reload(); closeSheet();
@@ -2298,7 +2774,7 @@ function pBelege(){
     const sigV = p.sigV ? (S.imgCache?.[p.sigV] || null) : null;
     const sigA = (p.sigA ? (S.imgCache?.[p.sigA] || null) : null)
       || (S.meta.sigAuto === false ? null : (S.meta.sigAussteller || null));
-    return `<div class="page">${phead("Eigenbeleg","Beleg EB-"+p.year+"-"+String(p.beleg).padStart(4,"0"))}
+    return `<div class="page">${phead(/eigenherstellung/i.test(p.plattform||"")?"Zugangsbeleg":"Eigenbeleg","Beleg EB-"+p.year+"-"+String(p.beleg).padStart(4,"0"))}
     ${p.storno?'<div class="ebox" style="border-width:2pt"><b>STORNIERT — dieser Beleg ist gegenstandslos.</b></div>':""}
     <div class="ebox"><div class="egrid">
       <div class="k">Belegnummer</div><div class="mono"><b>EB-${p.year}-${String(p.beleg).padStart(4,"0")}</b></div>
@@ -2308,7 +2784,9 @@ function pBelege(){
       <div class="k">Zahlart</div><div>${ZAHLART[p.zahlart]||"—"}</div>
       <div class="k">${num(p.betrag)===0?"Überlassen von":"Empfänger"}</div><div>${esc(p.vName||"— nicht erfasst —")}<br>${esc(p.vStr||"")}<br>${esc(p.vPlz||"")}${p.vNick?"<br>Nutzername: "+esc(p.vNick):""}</div>
       <div class="k">Erworben über</div><div>${esc(p.plattform||"—")}${p.vMarkt?"<br>"+esc(p.vMarkt):""}${p.vStand?", "+esc(p.vStand):""}${p.sammel?"<br>Sammelankauf über mehrere Stände":""}</div>
-      <div class="k">Grund des Eigenbelegs</div><div>${num(p.betrag)===0
+      <div class="k">Grund des Eigenbelegs</div><div>${/eigenherstellung/i.test(p.plattform||"")
+        ? "Zugang selbst hergestellter Ware. Kein Erwerb von Dritten; angesetzt ist der Materialeinsatz."
+        : num(p.betrag)===0
         ? "Unentgeltlicher Erwerb von einer Privatperson; es wurde kein Kaufpreis gezahlt und keine Quittung ausgestellt."
         : "Kauf von einer Privatperson; der Verkäufer stellt keine Rechnung und keine Quittung aus."}</div>
       <div class="k">Vorsteuer</div><div>Kein Vorsteuerabzug — Erwerb von einer Privatperson.</div>
@@ -2335,10 +2813,10 @@ function pMarge(){
   <table class="ptbl"><thead><tr><th>Beleg</th><th>Gegenstand</th><th>Verkauft am</th><th>Plattform</th><th style="text-align:right">Einkauf</th><th style="text-align:right">Verkauf</th><th style="text-align:right">Differenz</th></tr></thead><tbody>
   ${sold.map(i=>{const p=S.purchases.find(x=>x.id===i.purchaseId)||{};return `<tr><td class="mono">${String(p.beleg||0).padStart(4,"0")}</td><td>${esc(i.bez)}</td><td>${dstr(i.sale.datum)}</td><td>${esc(i.sale.plattform||"")}</td>
     <td class="n">${num(i.ek).toFixed(2).replace(".",",")}</td><td class="n">${num(i.sale.vk).toFixed(2).replace(".",",")}</td>
-    <td class="n">${(num(i.sale.vk)-num(i.ek)).toFixed(2).replace(".",",")}</td></tr>`;}).join("")}
+    <td class="n">${(num(i.sale.vk)-num(i.ek)).toFixed(2).replace(".",",")}${i.sale.geschaetzt?" *":""}</td></tr>`;}).join("")}
   </tbody></table>
   <div class="ptot">Summe Einkauf ${eur(eSum)} · Summe Verkauf ${eur(vSum)} · Gesamtdifferenz ${eur(vSum-eSum)}</div>
-  <p class="pnote">Erstellt als Vorsorge. Aktuell wird die Kleinunternehmerregelung nach § 19 UStG angewandt, Umsatzsteuer wird nicht ausgewiesen.<br>
+  <p class="pnote">Erstellt als Vorsorge. Aktuell wird die Kleinunternehmerregelung nach § 19 UStG angewandt, Umsatzsteuer wird nicht ausgewiesen.<br>${sold.some(i=>i.sale.geschaetzt) ? "* Verkaufspreis im Wege sachgerechter Schätzung aus dem Gesamterlös einer Verkaufsrunde abgeleitet.<br>" : ""}
   Die Besteuerung nach der Gesamtdifferenz setzt voraus, dass der Einkaufspreis je Gegenstand 750 € nicht übersteigt (§ 25a Abs. 4 S. 2 UStG, seit 1.1.2025). Davon erfüllen ${unter.length} von ${sold.length} Positionen die Voraussetzung.</p></div>`;
 }
 function pLager(){
@@ -2412,7 +2890,7 @@ function pVerkaeufe(){
   </tbody></table>
   <div class="ptot">Erlöse ${eur(brutto)} · Gebühren ${eur(geb)} · Porto ${eur(por)} · Verpackung ${eur(ver)}<br>
   Eingesetzter Wareneinkauf ${eur(ek)} · Deckungsbeitrag ${eur(brutto-geb-por-ver-ek)}</div>
-  <p class="pnote">${sold.length} Verkäufe. Kleinunternehmerregelung nach § 19 UStG — die Erlöse sind Bruttobeträge ohne ausgewiesene Umsatzsteuer.</p></div>`
+  <p class="pnote">${sold.length} Verkäufe. Kleinunternehmerregelung nach § 19 UStG — die Erlöse sind Bruttobeträge ohne ausgewiesene Umsatzsteuer.${sold.some(i=>i.sale.geschaetzt) ? "<br>* Der Gesamterlös der Verkaufsrunde stand fest, die Aufteilung auf die einzelnen Gegenstände erfolgte im Wege sachgerechter Schätzung im Verhältnis der Einkaufswerte. Die Summe der Einzelbeträge entspricht dem tatsächlichen Erlös." : ""}</p></div>`
   + vkBelegseiten(sold);
 }
 
@@ -2505,6 +2983,9 @@ function pVerfahren(){
   <p>Belege tragen fortlaufende Nummern im Format EB-JJJJ-NNNN, je Geschäftsjahr bei 0001 beginnend, ohne Lücken. Ein Beleg wird nie gelöscht. Fehlerhafte Belege werden als storniert gekennzeichnet, bleiben in der Nummernfolge und werden mit dem Vermerk „storniert“ ausgegeben.</p>
   <h3 class="psec">4. Verkauf</h3>
   <p>Jede Position wird mit ihrem Verkauf verknüpft: Verkaufsdatum, Plattform, Verkaufspreis brutto, Gebühren, Porto und Verpackung. Daraus ergibt sich die Differenz zwischen Verkaufs- und Einkaufspreis je Gegenstand.</p>
+  <h3 class="psec">4a. Verkaufsrunden und Schätzung</h3>
+  <p>Bei Verkäufen über Live-Formate liegt teilweise nur der Gesamterlös einer Sendung vor, nicht der Einzelpreis je Gegenstand. In diesen Fällen wird der Gesamterlös im Verhältnis der Einkaufswerte auf die verkauften Gegenstände verteilt. Die betroffenen Positionen sind in den Auswertungen mit einem Sternchen gekennzeichnet. Die Summe der Einzelbeträge entspricht stets dem tatsächlich vereinnahmten Gesamterlös. Ware, die zum Zeitpunkt des Verkaufs noch nicht im Bestand erfasst war, wird mit einem eigenen Zugangsbeleg nachgetragen.</p>
+
   <h3 class="psec">5. Umsatzsteuer</h3>
   <p>Es wird die Kleinunternehmerregelung nach § 19 UStG angewandt. Umsatzsteuer wird nicht ausgewiesen. Aus Ankäufen von Privatpersonen besteht kein Vorsteuerabzug. Einkaufspreis, Verkaufspreis und Differenz werden je Gegenstand getrennt aufgezeichnet, damit die Aufzeichnungspflichten des § 25a Abs. 6 UStG bei einem Wechsel zur Regelbesteuerung ohne Nacharbeit erfüllt sind.</p>
   <h3 class="psec">6. Aufbewahrung und Sicherung</h3>
@@ -2773,6 +3254,7 @@ document.addEventListener("click", e=>{
   if(a){
     if(a.dataset.act==="backup") return backup();
     if(a.dataset.act==="restore") return document.getElementById("jsonPick").click();
+    if(a.dataset.act==="import") return openImport();
     if(a.dataset.act==="csv") return csv();
     if(a.dataset.act==="stamm") return openStamm();
     if(a.dataset.act==="papierkorb") return openPapierkorb();
@@ -2834,6 +3316,7 @@ document.getElementById("filePick").onchange = async e=>{
   else if(seitenGesamt) toast(`${seitenGesamt} Seite${seitenGesamt>1?"n":""} aus der PDF übernommen`);
   else toast(dateien.length>1 ? `${dateien.length} Nachweise hinzugefügt` : "Nachweis hinzugefügt");
 };
+document.getElementById("csvPick").onchange = e=>{ const f=e.target.files[0]; if(f) importSichten(f); e.target.value=""; };
 document.getElementById("jsonPick").onchange = e=>{ const f=e.target.files[0]; if(f) restore(f); e.target.value=""; };
 
 /* ---------------- Start ---------------- */
