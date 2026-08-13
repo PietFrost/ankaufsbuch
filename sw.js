@@ -2,8 +2,8 @@
    Programmdateien werden zuerst frisch geholt und nur bei fehlendem Netz
    aus dem Cache bedient. Deine Daten liegen NICHT hier, sondern in IndexedDB.
    pdf.js kommt vom CDN und landet nach dem ersten Mal im Cache unten. */
-const CACHE = "ankaufsbuch-v28";
-const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png", "./plz.txt"];
+const CACHE = "ankaufsbuch-v32";
+const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png", "./plz.txt", "./pouchdb.min.js"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

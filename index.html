@@ -141,6 +141,7 @@ nav button.on{color:var(--ink)}
 
 /* ---------- Sheet ---------- */
 .sheet{position:fixed;inset:0;z-index:100;background:var(--paper);display:none;flex-direction:column}
+.sheetbox{display:flex;flex-direction:column;flex:1;min-height:0;width:100%}
 .sheet.on{display:flex}
 .sheet .top{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
 .sheet .top .ttl{flex:1;font-size:13px;letter-spacing:.13em;text-transform:uppercase;font-weight:700}
@@ -299,6 +300,69 @@ details.fold .fb{padding:13px}
   .ptext{font-size:9.5pt;line-height:1.5}
   .ptext li{margin-bottom:1.5mm}
 }
+/* ---------- Breite Bildschirme: Seitenleiste, mehr Spalten ---------- */
+@media (min-width:900px){
+  body{padding-bottom:0;padding-left:236px}
+  header{
+    position:fixed;top:0;left:0;bottom:0;width:236px;z-index:60;
+    flex-direction:column;align-items:stretch;gap:0;
+    border-right:1px solid var(--rule);border-bottom:0;
+    padding:20px 14px 14px;overflow-y:auto;
+  }
+  .brand{flex:0 0 auto;font-size:15px;letter-spacing:.1em;margin-bottom:18px;padding:0 8px}
+  .brand small{margin-top:3px}
+  #verStamp{position:absolute;top:22px;right:14px}
+  header #findBtn, header #storeBtn{display:none}
+  #yearSel{width:100%;margin-bottom:14px;padding:9px 30px 9px 10px}
+
+  nav{
+    position:static;flex-direction:column;background:none;border:0;
+    padding:0;backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  nav button{
+    flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:11px;
+    padding:11px 10px;border-radius:8px;font-size:14px;text-transform:none;
+    letter-spacing:0;font-weight:600;
+  }
+  nav button.on{background:var(--rule-2);color:var(--ink)}
+  nav button:hover{background:var(--rule-2)}
+  nav button svg{width:19px;height:19px}
+
+  .deskonly{display:flex !important}
+  .sideact{margin-top:auto;padding-top:14px;border-top:1px solid var(--rule-2);display:flex;flex-direction:column;gap:2px}
+  .sideact button{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
+    font-size:13.5px;font-weight:600;color:var(--ink-2);text-align:left;width:100%}
+  .sideact button:hover{background:var(--rule-2)}
+  .sideact button svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;flex:0 0 auto}
+
+  main{max-width:1080px;padding:26px 30px 60px}
+  h2:first-child{margin-top:0}
+  .fab{right:auto;left:calc(236px + 30px);bottom:26px;position:fixed}
+
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .kpi.wide{grid-column:auto}
+  .mgrid{grid-template-columns:repeat(6,1fr)}
+  .shots{grid-template-columns:repeat(4,1fr)}
+  .gstrip .gs{flex-basis:110px;height:110px}
+
+  /* Formulare als mittige Fenster statt Vollbild */
+  .sheet{background:rgba(27,36,48,.32);padding:34px 20px;
+    align-items:center;justify-content:center}
+  .sheet.on{display:flex;flex-direction:row}
+  .sheet > .top{display:none}
+  .sheetbox{background:var(--paper);border-radius:14px;width:100%;max-width:720px;
+    max-height:100%;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 18px 50px rgba(27,36,48,.28)}
+  .sheetbox > .top{position:sticky;top:0;padding:14px 18px}
+  .sheetbox > .scroll{padding:20px 22px 26px}
+  #sheet2{background:rgba(27,36,48,.42)}
+  .rsum{bottom:0;padding-bottom:11px}
+  .imprw select{flex-basis:160px}
+}
+@media (min-width:1280px){
+  main{max-width:1180px}
+  .shots{grid-template-columns:repeat(5,1fr)}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
 </style>
 </head>
@@ -314,6 +378,18 @@ details.fold .fb{padding:13px}
     <svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-6h8v6"/></svg>
   </button>
   <select id="yearSel" aria-label="Geschäftsjahr"></select>
+  <nav id="hauptNav">
+    <button data-v="home" class="on"><svg viewBox="0 0 24 24"><path d="M4 19V9l8-5 8 5v10"/><path d="M9 19v-6h6v6"/></svg>Übersicht</button>
+    <button data-v="buy"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Ankäufe</button>
+    <button data-v="stock"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Lager</button>
+    <button data-v="cost"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 14.5h5"/></svg>Kosten</button>
+    <button data-v="out"><svg viewBox="0 0 24 24"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v5H7z"/></svg>Abschluss</button>
+  </nav>
+  <div class="sideact deskonly" style="display:none">
+    <button id="sideFind"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>Suchen</button>
+    <button id="sideStore"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-6h8v6"/></svg>Speicher &amp; Sicherung</button>
+    <button id="sideLegal"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Rechtliches</button>
+  </div>
 </header>
 
 <main>
@@ -373,32 +449,24 @@ details.fold .fb{padding:13px}
 
 <button class="fab" id="fab" aria-label="Ankauf erfassen">+</button>
 
-<nav>
-  <button data-v="home" class="on"><svg viewBox="0 0 24 24"><path d="M4 19V9l8-5 8 5v10"/><path d="M9 19v-6h6v6"/></svg>Übersicht</button>
-  <button data-v="buy"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Ankäufe</button>
-  <button data-v="stock"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Lager</button>
-  <button data-v="cost"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 14.5h5"/></svg>Kosten</button>
-  <button data-v="out"><svg viewBox="0 0 24 24"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v5H7z"/></svg>Abschluss</button>
-</nav>
-
 <!-- Sheets -->
-<div class="sheet" id="sheet">
+<div class="sheet" id="sheet"><div class="sheetbox">
   <div class="top">
     <button id="shCancel">Abbrechen</button>
     <div class="ttl" id="shTitle"></div>
     <button class="prim" id="shSave">Sichern</button>
   </div>
   <div class="scroll" id="shBody"></div>
-</div>
+</div></div>
 
-<div class="sheet" id="sheet2">
+<div class="sheet" id="sheet2"><div class="sheetbox">
   <div class="top">
     <button id="sh2Cancel">Abbrechen</button>
     <div class="ttl" id="sh2Title"></div>
     <button class="prim" id="sh2Save">Fertig</button>
   </div>
   <div class="scroll" id="sh2Body"></div>
-</div>
+</div></div>
 
 <div id="viewer">
   <div class="vtop"><div class="vt" id="vTitle"></div><button id="vClose">Schließen</button></div>
@@ -411,6 +479,7 @@ details.fold .fb{padding:13px}
 <input type="file" id="csvPick" accept=".csv,.tsv,.txt,text/csv,text/plain" style="display:none">
 <div id="print"></div>
 
+<script src="pouchdb.min.js"></script>
 <script>
 "use strict";
 /* =======================================================================
@@ -429,7 +498,7 @@ const KSHOT = {rechnung:"Rechnung oder Beleg"};
 const SHOT = {ware:"Foto der Ware", anzeige:"Anzeige", chat:"Chatverlauf", zahlung:"Zahlungsnachweis", eigenbeleg:"Eigenbeleg unterschrieben"};
 const VSHOT = {abrechnung:"Abrechnung", rechnung:"Rechnung", versand:"Versandbeleg", zahlung:"Zahlungseingang", sonstiges:"Sonstiges"};
 const RSHOT = {abrechnung:"Abrechnung der Plattform", auszahlung:"Auszahlung", uebersicht:"Verkaufsübersicht", sonstiges:"Sonstiges"};
-const APP_VERSION = "v28";
+const APP_VERSION = "v32";
 const KM_SATZ = 0.30;
 /* Voreingestelltes Logo — in den Stammdaten austauschbar */
 const LOGO_STANDARD = "data:image/png;base64,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";
@@ -439,42 +508,158 @@ const logoJetzt = ()=> (S.meta.logo === null ? null : (S.meta.logo || LOGO_STAND
 let db = null, memMode = false;
 const mem = {purchases:[],items:[],expenses:[],images:[],meta:[],events:[]};
 
+/* ---------------- Speicher: PouchDB ----------------
+   Ablage im Gerät, gleicht sich mit CouchDB auf dem Pi ab.
+   Die vier Helfer all/put/del/getOne behalten ihre Bedeutung;
+   der Rest der App merkt vom Umbau nichts.
+   Schlüssel im Dokument: _id = "store:id". Das eigene Feld id
+   bleibt unverändert erhalten. -------------------------------- */
+let pdb = null, sync = null;
+const STORES = ["purchases","items","expenses","images","meta","events"];
+const SY = {an:false, stand:"aus", seit:0, fehler:"", laeuft:false};
+
+const dokId  = (store,id)=> store+":"+id;
+const entkleiden = d => { if(!d) return null; const o={...d}; delete o._id; delete o._rev; return o; };
+
+function syncEinstellung(){
+  try{ return JSON.parse(localStorage.getItem("ab_sync")||"null"); }catch(e){ return null; }
+}
+function syncEinstellungSetzen(o){
+  try{ o ? localStorage.setItem("ab_sync", JSON.stringify(o)) : localStorage.removeItem("ab_sync"); }catch(e){}
+}
+
 function openDB(){
-  return new Promise(res=>{
-    let req;
-    try{ req = indexedDB.open("ankaufsbuch",2); }catch(e){ memMode=true; return res(); }
-    req.onupgradeneeded = ()=>{
-      const d = req.result;
-      ["purchases","items","expenses","images","meta","events"].forEach(n=>{
-        if(!d.objectStoreNames.contains(n)) d.createObjectStore(n,{keyPath:"id"});
-      });
-    };
-    req.onsuccess = ()=>{ db = req.result; res(); };
-    req.onerror = ()=>{ memMode = true; res(); };
-    req.onblocked = ()=>{ memMode = true; res(); };
-    setTimeout(()=>{ if(!db && !memMode){ memMode=true; res(); } }, 2500);
+  return new Promise(async res=>{
+    if(typeof PouchDB === "undefined"){ memMode = true; return res(); }
+    try{
+      pdb = new PouchDB("ankaufsbuch", {auto_compaction:true});
+      await pdb.info();
+    }catch(e){ memMode = true; return res(); }
+    try{ await altbestandUebernehmen(); }catch(e){ console.warn("Übernahme:", e); }
+    res();
   });
 }
-function tx(store,mode){ return db.transaction(store,mode).objectStore(store); }
-function all(store){
-  if(memMode || !db) return Promise.resolve(mem[store].slice());
-  return new Promise(res=>{ const r = tx(store,"readonly").getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>res([]); });
+
+/* Einmalige Übernahme aus der alten Ablage (IndexedDB "ankaufsbuch").
+   Schreibt nur, was noch nicht da ist — ein bereits abgeglichener
+   Stand vom anderen Gerät wird nie überschrieben. Die alte Ablage
+   bleibt unangetastet als Rückfallebene. */
+function altbestandUebernehmen(){
+  return new Promise(res=>{
+    if(localStorage.getItem("ab_uebernommen") === "1") return res();
+    let req;
+    try{ req = indexedDB.open("ankaufsbuch",2); }catch(e){ return res(); }
+    req.onerror = ()=>res(); req.onblocked = ()=>res();
+    req.onupgradeneeded = ()=>{ try{ req.transaction.abort(); }catch(e){} };
+    req.onsuccess = async ()=>{
+      const alt = req.result;
+      let uebernommen = 0;
+      try{
+        for(const store of STORES){
+          if(!alt.objectStoreNames.contains(store)) continue;
+          const saetze = await new Promise(r=>{
+            try{ const q = alt.transaction(store,"readonly").objectStore(store).getAll();
+                 q.onsuccess=()=>r(q.result||[]); q.onerror=()=>r([]); }catch(e){ r([]); }
+          });
+          for(const satz of saetze){
+            if(!satz || satz.id===undefined) continue;
+            const _id = dokId(store, satz.id);
+            try{ await pdb.get(_id); }               // schon da -> in Ruhe lassen
+            catch(e){
+              if(e && e.status === 404){
+                try{ await pdb.put({...satz, _id}); uebernommen++; }catch(e2){}
+              }
+            }
+          }
+        }
+        localStorage.setItem("ab_uebernommen","1");
+        if(uebernommen) console.info("Übernommen:", uebernommen);
+      }catch(e){ console.warn("Übernahme abgebrochen:", e); }
+      try{ alt.close(); }catch(e){}
+      res();
+    };
+    setTimeout(res, 8000);
+  });
 }
-function put(store,obj){
-  if(memMode || !db){
+
+async function all(store){
+  if(memMode || !pdb) return mem[store].slice();
+  try{
+    const r = await pdb.allDocs({include_docs:true, startkey:store+":", endkey:store+":\ufff0"});
+    return r.rows.map(z=>entkleiden(z.doc)).filter(Boolean);
+  }catch(e){ return []; }
+}
+async function put(store,obj){
+  if(memMode || !pdb){
     const a = mem[store], i = a.findIndex(x=>x.id===obj.id);
     if(i>=0) a[i]=obj; else a.push(obj);
-    return Promise.resolve(obj);
+    return obj;
   }
-  return new Promise(res=>{ const r = tx(store,"readwrite").put(obj); r.onsuccess=()=>res(obj); r.onerror=()=>res(obj); });
+  const _id = dokId(store,obj.id);
+  for(let versuch=0; versuch<3; versuch++){
+    try{
+      let rev;
+      try{ rev = (await pdb.get(_id))._rev; }catch(e){ if(!(e && e.status===404)) throw e; }
+      await pdb.put(rev ? {...obj,_id,_rev:rev} : {...obj,_id});
+      return obj;
+    }catch(e){
+      if(!(e && e.status===409)) { console.warn("put:", e); return obj; }
+    }
+  }
+  return obj;
 }
-function del(store,id){
-  if(memMode || !db){ mem[store] = mem[store].filter(x=>x.id!==id); return Promise.resolve(); }
-  return new Promise(res=>{ const r = tx(store,"readwrite").delete(id); r.onsuccess=()=>res(); r.onerror=()=>res(); });
+async function del(store,id){
+  if(memMode || !pdb){ mem[store] = mem[store].filter(x=>x.id!==id); return; }
+  try{ const d = await pdb.get(dokId(store,id)); await pdb.remove(d); }catch(e){}
 }
-function getOne(store,id){
-  if(memMode || !db) return Promise.resolve(mem[store].find(x=>x.id===id)||null);
-  return new Promise(res=>{ const r = tx(store,"readonly").get(id); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); });
+async function getOne(store,id){
+  if(memMode || !pdb) return mem[store].find(x=>x.id===id)||null;
+  try{ return entkleiden(await pdb.get(dokId(store,id))); }catch(e){ return null; }
+}
+
+/* ---------------- Abgleich mit dem Pi ---------------- */
+function syncStarten(){
+  const e = syncEinstellung();
+  if(!pdb || !e || !e.url){ SY.an=false; SY.stand="aus"; return; }
+  syncStoppen();
+  SY.an = true; SY.stand = "verbindet"; SY.fehler = "";
+  try{
+    const wahl = {skip_setup:true};
+    // Nur anmelden, wenn auch Zugangsdaten hinterlegt sind. Ein leerer
+    // Anmeldeeintrag wird sonst als falsches Passwort abgewiesen.
+    if(e.user) wahl.auth = {username:e.user, password:e.pass};
+    const ziel = new PouchDB(e.url.replace(/\/+$/,"")+"/"+(e.db||"ankaufsbuch"), wahl);
+    sync = pdb.sync(ziel, {live:true, retry:true})
+      .on("change", ()=>{ SY.stand="überträgt"; SY.seit=Date.now(); syncNachladen(); syncAnzeige(); })
+      .on("paused", err=>{ SY.stand = err ? "wartet auf Netz" : "abgeglichen"; SY.seit=Date.now(); syncAnzeige(); })
+      .on("active", ()=>{ SY.stand="überträgt"; syncAnzeige(); })
+      .on("denied", err=>{ SY.stand="abgewiesen"; SY.fehler=String(err&&err.message||err); syncAnzeige(); })
+      .on("error", err=>{ SY.stand="Fehler"; SY.fehler=String(err&&err.message||err); syncAnzeige(); });
+  }catch(err){ SY.stand="Fehler"; SY.fehler=String(err&&err.message||err); }
+  syncAnzeige();
+}
+/* Beim Abgleich kommen viele Änderungen einzeln herein. Die Anzeige
+   wird erst neu aufgebaut, wenn eine Weile nichts mehr nachkommt -
+   sonst baut sich die Oberfläche pro Dokument einmal komplett neu auf. */
+let syncTakt = null;
+function syncNachladen(){
+  clearTimeout(syncTakt);
+  syncTakt = setTimeout(()=>{ reload().catch(()=>{}); }, 900);
+}
+function syncStoppen(){
+  try{ if(sync) sync.cancel(); }catch(e){}
+  sync = null;
+}
+function syncAnzeige(){
+  const k = document.getElementById("syncStand");
+  if(k) k.textContent = SY.an ? SY.stand : "aus";
+}
+async function syncPruefen(url,user,pass,dbname){
+  const ziel = url.replace(/\/+$/,"")+"/"+(dbname||"ankaufsbuch");
+  const kopf = user ? {Authorization:"Basic "+btoa(user+":"+pass)} : {};
+  const a = await fetch(ziel, {headers:kopf});
+  if(!a.ok) throw new Error("HTTP "+a.status+(a.status===401?" — Benutzer oder Passwort stimmt nicht":""));
+  return await a.json();
 }
 
 /* ---------------- Zustand ---------------- */
@@ -603,6 +788,26 @@ const yearItems = ()=> S.items.filter(i=>{
   return p && !p.storno && !p.geloescht;
 });
 const PAPIERKORB_TAGE = 30;
+/* § 25a setzt einen entgeltlichen Erwerb voraus. Geschenke, Einlagen aus dem
+   Privatvermögen, Erbstücke und selbst hergestellte Ware fallen nicht darunter
+   (UStAE 25a.1 Abs. 4) — sie laufen über die Regelbesteuerung. */
+function unter25a(item){
+  const p = S.purchases.find(x=>x.id===item.purchaseId);
+  if(!p) return false;
+  if(/geschenk|einlage|eigenherstellung|erb/i.test(p.plattform||"")) return false;
+  if(p.zahlart === "keine") return false;
+  return num(p.betrag) > 0;
+}
+/* Aus der Differenz die enthaltene Umsatzsteuer herausrechnen (§ 25a Abs. 3) */
+const USATZ = 19;
+function bemessung(differenz){
+  const d = Math.max(0, num(differenz));          // negative Differenzen bleiben außer Ansatz
+  return Math.round((d - d * USATZ/(100+USATZ)) * 100) / 100;
+}
+function enthalteneUst(differenz){
+  const d = Math.max(0, num(differenz));
+  return Math.round(d * USATZ/(100+USATZ) * 100) / 100;
+}
 const MONATE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 /* Nur während der Berichtserzeugung gesetzt — sonst zeigt die App immer das ganze Jahr */
 const imMonat = datum => S.pMonat === null || S.pMonat === undefined
@@ -753,6 +958,9 @@ function renderHome(){
     A.push(["var(--signal)", `${ls.length} Positionen liegen über ein Jahr`, `Gebundener Einkaufswert ${eur(ls.reduce((a,i)=>a+num(i.ek),0))}`, "langsteher"]);
   if(st.lager.length)
     A.push(["var(--rule)", "Verkaufsrunde erfassen", `${st.lager.length} Positionen auf Lager · Stream, Markt oder Auktion in einem Rutsch`, "runde"]);
+  const offen = einrichtungOffen();
+  if(offen.length) A.unshift(["var(--stamp)", `Einrichtung: ${offen.length} ${offen.length===1?"Punkt":"Punkte"} offen`,
+    offen.slice(0,2).map(x=>x.titel).join(", ") + (offen.length>2 ? " und weitere" : ""), "einrichtung"]);
   const dn = doppelteNummern();
   if(dn.length) A.unshift(["var(--stamp)", `${dn.length} Belege mit doppelter Nummer`,
     "Belegnummern müssen eindeutig sein — hier antippen und neu durchnummerieren", "nummern"]);
@@ -927,6 +1135,8 @@ function renderOut(){
     <button class="linkrow" data-act="csv"><div><div class="l">CSV für den Steuerberater</div><div class="d">Ankäufe, Positionen und Kosten als Tabelle</div></div><div class="chev">→</div></button>`;
   const m = S.meta;
   document.getElementById("settingsRows").innerHTML = `
+    <button class="linkrow" data-act="einrichtung"><div><div class="l">Einrichtung</div><div class="d">${einrichtungOffen().length ? einrichtungOffen().length+" Punkte offen" : "Vollständig"}</div></div><div class="chev">→</div></button>
+    <button class="linkrow" data-act="recht"><div><div class="l">Rechtliches</div><div class="d">Haftungsausschluss, Umgang mit Daten, Anbieterangaben</div></div><div class="chev">→</div></button>
     <button class="linkrow" data-act="stamm"><div><div class="l">${esc(m.name||"Name und Anschrift eintragen")}</div><div class="d">${m.name?esc([m.strasse,m.plzOrt].filter(Boolean).join(", ")||"Anschrift fehlt")+(m.stnr?" · "+esc(m.stnr):""):"Erscheint auf jedem Eigenbeleg"}</div></div><div class="chev">→</div></button>`;
 }
 const outRow = (k,l,d)=>`<button class="linkrow" data-print="${k}"><div><div class="l">${l}</div><div class="d">${d}</div></div><div class="chev">↧</div></button>`;
@@ -1115,6 +1325,7 @@ function renderPositions(){
       + `<button class="btn ghost" id="posAdd">Position hinzufügen</button>
          <button class="btn ghost" id="posSplit" style="margin-top:8px">Gleichmäßig aufteilen</button>
          <p class="hint" id="posSum"></p>
+         <p class="hint" id="posRegel"></p>
          <p class="hint">Der Kaufpreis verteilt sich von allein auf die Positionen. Trägst du bei einer Position selbst einen Wert ein, wird der Rest auf die übrigen verteilt.</p>`;
     w.querySelectorAll("[data-pbez]").forEach(el=> el.oninput = e=>{ const it=d.items.find(x=>x.id===el.dataset.pbez); it.bez=e.target.value; });
     w.querySelectorAll("[data-pek]").forEach(el=> el.oninput = e=>{
@@ -1154,6 +1365,13 @@ function autoVerteilen(){
   });
 }
 function updatePosSum(){
+  const regel = document.getElementById("posRegel");
+  if(regel){
+    const g = num(val("f_betrag"));
+    regel.innerHTML = g > 750
+      ? `<b style="color:var(--signal)">Über 750 €.</b> Hier ist eine Aufteilung erforderlich — der Gesamtpreis wird durch sachgerechte Schätzung auf die Gegenstände verteilt (UStAE 25a.1 Abs. 12).`
+      : `<b style="color:var(--ok)">Bis 750 €.</b> Eine Aufteilung ist steuerlich nicht nötig — das Konvolut geht komplett in die Gesamtdifferenz. Teile trotzdem auf, wenn du wissen willst, was sich lohnt, oder Teile einzeln verkaufst.`;
+  }
   const el = document.getElementById("posSum"); if(!el) return;
   const s = S.draft.items.reduce((a,i)=>a+num(i.ek),0), g = num(val("f_betrag")), diff = Math.round((g-s)*100)/100;
   el.innerHTML = `Verteilt: <b class="mono">${eur(s)}</b> von <b class="mono">${eur(g)}</b>` +
@@ -1497,7 +1715,7 @@ function renderVerkaeufer(){
     if(k==="sammel") return `<label class="check ${v.sammel?"on":""}" id="f_sammelBox">
       <input type="checkbox" id="f_sammel" ${v.sammel?"checked":""}>
       <span class="ct">Sammelankauf über mehrere Stände
-      <span class="cs">Ein Beleg für den ganzen Markttag. Einzelne Verkäufer sind dann nicht zuzuordnen.</span></span></label>`;
+      <span class="cs">Notlösung. Ein Beleg je Kauf ist deutlich belastbarer — „Flohmarkt Juli, 300 €“ macht die einzelnen Käufe nicht nachvollziehbar. Nutz den Markttag-Modus, dann ist ein Beleg je Stand kaum mehr Aufwand.</span></span></label>`;
     const [id,lab,ph,cap] = F[k];
     const dl = (id==="vName"||id==="vNick"||id==="vMarkt"||id==="vPlz") ? ` list="dl_${id}"` : "";
     const hint = id==="vPlz" ? `<p class="hint" style="margin-top:-6px">PLZ oder Ort tippen — der Rest wird vorgeschlagen.</p>` : "";
@@ -2591,6 +2809,129 @@ async function pdfsNachruesten(){
     : `${fertig} PDF umgewandelt, sie stehen jetzt im Ausdruck`);
 }
 
+/* ---------------- Ersteinrichtung ---------------- */
+/* Was fehlt, damit die Ausdrucke vollständig sind */
+function einrichtung(){
+  const m = S.meta;
+  return [
+    {id:"name",   fertig: !!(m.name && m.name.trim()),
+     titel:"Name und Anschrift",  text:"Steht als Aussteller auf jedem Eigenbeleg. Ohne diese Angabe sind die Ausdrucke unbrauchbar."},
+    {id:"stnr",   fertig: !!(m.stnr && m.stnr.trim()),
+     titel:"Steuernummer",        text:"Erscheint in der Kopfzeile der Berichte. Findest du auf jedem Schreiben vom Finanzamt."},
+    {id:"sig",    fertig: !!m.sigAussteller,
+     titel:"Unterschrift",        text:"Einmal mit dem Finger gezeichnet — danach unterschreibt sich jeder Eigenbeleg von allein."},
+    {id:"kalk",   fertig: m.aufschlag !== undefined && m.aufschlag !== null && m.aufschlag !== "",
+     titel:"Kalkulation",         text:"Wunschaufschlag, Porto und Plattformgebühren. Daraus errechnet sich dein Mindestverkaufspreis."},
+    {id:"backup", fertig: !!m.lastBackup,
+     titel:"Erste Sicherung",     text:"Die Daten liegen nur auf diesem Gerät. Eine Sicherungsdatei ist deine einzige Rückversicherung."}
+  ];
+}
+function einrichtungOffen(){ return einrichtung().filter(x=>!x.fertig); }
+
+function openEinrichtung(){
+  const liste = einrichtung(), offen = liste.filter(x=>!x.fertig).length;
+  openSheet2("Einrichtung", `
+    <div class="banner ${offen?"warn":"info"}">
+      ${offen ? `<b>Noch ${offen} von ${liste.length} Punkten offen.</b> Solange etwas fehlt, sind die Ausdrucke unvollständig.`
+              : `<b>Alles eingerichtet.</b> Deine Ausdrucke sind vollständig.`}
+    </div>
+    <div class="card">${liste.map(x=>`
+      <button class="act" data-einr="${x.id}">
+        <div class="dot" style="background:${x.fertig?"var(--ok)":"var(--stamp)"}"></div>
+        <div class="ab"><b>${x.titel}${x.fertig?" ✓":""}</b><span>${x.text}</span></div>
+        <div class="chev">→</div></button>`).join("")}</div>
+    <p class="hint" style="margin-top:14px">Du kannst jederzeit auch ohne vollständige Einrichtung erfassen — nachtragen geht immer, die Ausdrucke ziehen die Angaben dann automatisch nach.</p>
+  `, null);
+  document.querySelectorAll("[data-einr]").forEach(el=> el.onclick = ()=>{
+    const was = el.dataset.einr;
+    closeSheet2();
+    if(was === "backup") return backup();
+    openStamm();
+    if(was === "sig")  setTimeout(()=>{ const b=document.getElementById("s_sig"); if(b){ b.scrollIntoView({block:"center"}); b.click(); } }, 220);
+    if(was === "kalk") setTimeout(()=>{ const f=document.getElementById("s_aufschlag"); if(f){ f.scrollIntoView({block:"center"}); f.focus(); } }, 220);
+    if(was === "stnr") setTimeout(()=>{ const f=document.getElementById("s_stnr"); if(f){ f.scrollIntoView({block:"center"}); f.focus(); } }, 220);
+  });
+}
+
+/* ---------------- Rechtliches ---------------- */
+const RECHT_STAND = "12.08.2026";
+function openRecht(){
+  const b = S.meta.betreiber || {};
+  const gefuellt = !!(b.name && b.anschrift && b.kontakt);
+  openSheet2("Rechtliches", `
+    ${gefuellt ? "" : `<div class="banner warn"><b>Für den eigenen Gebrauch brauchst du hier nichts.</b>
+      Erst wenn du das Programm weitergibst oder verkaufst, müssen Impressum und Datenschutzerklärung
+      ausgefüllt sein — und die Texte gehören von einem Anwalt geprüft.</div>`}
+    <div class="card">
+      <button class="linkrow" data-recht="haftung"><div><div class="l">Haftungsausschluss</div>
+        <div class="d">Keine Steuerberatung — gilt immer, auch für dich selbst</div></div><div class="chev">→</div></button>
+      <button class="linkrow" data-recht="daten"><div><div class="l">Wo deine Daten liegen</div>
+        <div class="d">Was das Programm speichert und was es nicht tut</div></div><div class="chev">→</div></button>
+      <button class="linkrow" data-recht="betreiber"><div><div class="l">Angaben zum Anbieter</div>
+        <div class="d">${gefuellt ? esc(b.name) : "Nur nötig, wenn du weitergibst"}</div></div><div class="chev">→</div></button>
+    </div>
+    <p class="hint" style="margin-top:14px">Stand ${RECHT_STAND} · Ankaufsbuch ${APP_VERSION}</p>
+  `, null);
+  document.querySelectorAll("[data-recht]").forEach(el=> el.onclick = ()=>zeigeRecht(el.dataset.recht));
+}
+function zeigeRecht(was){
+  const b = S.meta.betreiber || {};
+  if(was === "betreiber"){
+    openSheet2("Angaben zum Anbieter", `
+      <p class="hint" style="margin-bottom:14px">Diese Angaben erscheinen, wenn du das Programm weitergibst.
+      Für den eigenen Gebrauch kannst du sie leer lassen.</p>
+      <div class="field"><label>Name oder Firma</label><input id="rb_name" value="${esc(b.name||"")}"></div>
+      <div class="field"><label>Anschrift</label><textarea id="rb_anschrift">${esc(b.anschrift||"")}</textarea></div>
+      <div class="field"><label>Kontakt (E-Mail, Telefon)</label><input id="rb_kontakt" value="${esc(b.kontakt||"")}"></div>
+      <div class="field"><label>Umsatzsteuer-Id oder Steuernummer</label><input id="rb_ust" value="${esc(b.ust||"")}"></div>
+      <div class="field"><label>Verantwortlich für den Inhalt</label><input id="rb_verantwortlich" value="${esc(b.verantwortlich||"")}"></div>
+      <div class="banner warn">Ein Impressum nach § 5 DDG und eine Datenschutzerklärung nach Art. 13 DSGVO
+      sind mehr als diese Felder. Lass beides von einem Anwalt erstellen, bevor du das Programm anbietest.</div>
+    `, async ()=>{
+      S.meta.betreiber = {name:val("rb_name"), anschrift:val("rb_anschrift"), kontakt:val("rb_kontakt"),
+        ust:val("rb_ust"), verantwortlich:val("rb_verantwortlich")};
+      await put("meta",{id:"stamm", ...S.meta});
+      closeSheet2(); toast("Gesichert");
+    }, "Sichern");
+    return;
+  }
+  const texte = {
+    haftung: ["Haftungsausschluss", `
+      <p><b>Dieses Programm ist eine Rechen- und Dokumentationshilfe. Es leistet keine Steuerberatung.</b></p>
+      <p>Geschäftsmäßige Hilfeleistung in Steuersachen ist nach dem Steuerberatungsgesetz den dort genannten
+      Personen und Vereinigungen vorbehalten (§ 2, § 3 StBerG). Das Programm nimmt keine steuerliche Würdigung
+      des Einzelfalls vor. Es rechnet mit den Zahlen, die du eingibst, und stellt sie nach den Vorgaben dar,
+      die sich aus dem Umsatzsteuergesetz und dem Umsatzsteuer-Anwendungserlass ergeben.</p>
+      <p>Ob die Differenzbesteuerung in deinem Fall anwendbar ist, ob ein Eigenbeleg im Einzelfall ausreicht
+      und wie ein Vorgang zu behandeln ist, entscheidet dein Steuerberater oder das Finanzamt — nicht dieses
+      Programm.</p>
+      <p>Für die Richtigkeit und Vollständigkeit der Ergebnisse wird keine Gewähr übernommen. Prüfe die
+      Auswertungen, bevor du sie verwendest. Die Verantwortung für deine Aufzeichnungen und deine
+      Steuererklärung bleibt bei dir.</p>
+      <p>Buchungsbelege sind nach § 147 Abs. 3 AO in der seit dem 1.1.2025 geltenden Fassung in der Regel
+      acht Jahre aufzubewahren. Sorge selbst dafür, dass deine Daten über diesen Zeitraum lesbar bleiben.</p>`],
+    daten: ["Wo deine Daten liegen", `
+      <p><b>Alles bleibt auf deinem Gerät.</b> Das Programm speichert Belege, Positionen, Kosten und Bilder
+      in der lokalen Datenbank des Browsers. Es überträgt nichts an einen Server, es gibt kein Konto und
+      keine Anmeldung.</p>
+      <p>Die einzige Ausnahme sind Dateien, die du selbst erzeugst: Sicherungen, Berichte und Ausdrucke
+      landen dort, wo du sie ablegst.</p>
+      <p><b>Was das heißt:</b> Niemand außer dir kommt an die Daten. Es heißt aber auch, dass niemand sie für
+      dich sichert. Löschst du das App-Symbol oder die Website-Daten des Browsers, sind sie weg.</p>
+      <p><b>Beim Weitergeben:</b> Da keine Daten zum Anbieter fließen, entsteht keine Auftragsverarbeitung im
+      Sinne der DSGVO — ein AVV ist dann nicht erforderlich. Für die Website, über die du das Programm
+      bereitstellst, gelten die üblichen Pflichten: Impressum nach § 5 DDG, Datenschutzerklärung nach
+      Art. 13 DSGVO, Hinweise zu Server-Protokolldaten. Lass das prüfen.</p>
+      <p>Die Postleitzahlen-Tabelle wird beim ersten Adressfeld einmalig von derselben Adresse nachgeladen,
+      von der das Programm kommt, und danach lokal vorgehalten.</p>`]
+  };
+  const [titel, inhalt] = texte[was] || ["", ""];
+  openSheet2(titel, `<div style="font-size:14.5px;line-height:1.55">${inhalt}</div>
+    <p class="hint" style="margin-top:16px">Stand ${RECHT_STAND}</p>
+    <button class="btn ghost" id="rz" style="margin-top:12px">Zurück</button>`, null);
+  document.getElementById("rz").onclick = openRecht;
+}
+
 /* ---------------- Speicherstatus ---------------- */
 async function openStorage(){
   const ps = await all("purchases"), its = await all("items"), ims = await all("images"), exs = await all("expenses");
@@ -2615,7 +2956,12 @@ async function openStorage(){
       ${offen?`<div class="dl"><dt>PDF ohne Seitenbilder</dt><dd>${offen}</dd></div>`:""}
       <div class="dl"><dt>Programmstand</dt><dd>${APP_VERSION}</dd></div>
     </div>
-    <button class="btn ghost" id="st_upd" style="margin-top:12px">Nach Update suchen</button>
+    <div class="card pad" style="margin-top:12px">
+      <div class="dl"><dt>Abgleich mit dem Pi</dt><dd id="syncStand">${SY.an?SY.stand:"aus"}</dd></div>
+      ${SY.fehler?`<p class="hint" style="color:#c00">${SY.fehler}</p>`:""}
+    </div>
+    <button class="btn ghost" id="st_sync" style="margin-top:8px">Abgleich einrichten</button>
+    <button class="btn ghost" id="st_upd" style="margin-top:8px">Nach Update suchen</button>
     ${offen?`<button class="btn ghost" id="st_pdf" style="margin-top:8px">${offen} PDF-Rechnung${offen>1?"en":""} in Seitenbilder umwandeln</button>
     <p class="hint" style="margin-top:8px">Danach stehen die Rechnungen mit im Monatspaket statt nur als Vermerk. Braucht einmal Netz.</p>`:""}
     ${tage===null||tage>7?`<div class="banner warn" style="margin-top:12px">Sicherung fällig. Teilen-Menü öffnet sich, dann „In Dateien sichern“ → iCloud Drive.</div>`:""}
@@ -2627,6 +2973,7 @@ async function openStorage(){
   document.getElementById("st_backup").onclick = async ()=>{ await backup(); };
   const pdfBtn = document.getElementById("st_pdf");
   if(pdfBtn) pdfBtn.onclick = async ()=>{ closeSheet2(); await pdfsNachruesten(); };
+  document.getElementById("st_sync").onclick = ()=>{ closeSheet2(); openSync(); };
   document.getElementById("st_upd").onclick = async ()=>{
     toast("Suche nach Update …");
     try{
@@ -2637,6 +2984,75 @@ async function openStorage(){
     }catch(e){ toast("Update ließ sich nicht laden"); }
   };
 }
+
+/* ---------------- Abgleich einrichten ---------------- */
+function openSync(){
+  const e = syncEinstellung() || {url:"", user:"", pass:"", db:"ankaufsbuch"};
+  openSheet2("Abgleich mit dem Pi", `
+    <div class="banner info">
+      <b>Wozu das gut ist.</b> Handy und PC arbeiten dann auf demselben Bestand.
+      Erfasst wird immer zuerst im Gerät — ohne Netz läuft alles weiter und
+      wird nachgereicht, sobald der Pi wieder erreichbar ist.
+    </div>
+    <div class="card pad">
+      <label class="lbl">Adresse der Datenbank</label>
+      <input class="inp" id="sy_url" value="${e.url||""}" placeholder="https://name.tailnet.ts.net:8443" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <label class="lbl" style="margin-top:10px">Benutzer</label>
+      <input class="inp" id="sy_user" value="${e.user||""}" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <label class="lbl" style="margin-top:10px">Passwort</label>
+      <input class="inp" id="sy_pass" type="password" value="${e.pass||""}" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <label class="lbl" style="margin-top:10px">Name der Datenbank</label>
+      <input class="inp" id="sy_db" value="${e.db||"ankaufsbuch"}" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </div>
+    <p class="hint" style="margin-top:10px">
+      Zugangsdaten bleiben in diesem Gerät. Sie stehen in keiner Programmdatei
+      und werden nicht mit abgeglichen.
+    </p>
+    <button class="btn" id="sy_test" style="margin-top:12px">Verbindung prüfen</button>
+    <button class="btn ghost" id="sy_save" style="margin-top:8px">Speichern und abgleichen</button>
+    ${e.url?`<button class="btn ghost" id="sy_off" style="margin-top:8px">Abgleich abschalten</button>`:""}
+    <div id="sy_out" style="margin-top:12px"></div>
+  `, null);
+
+  const lesen = ()=>({
+    url:  document.getElementById("sy_url").value.trim(),
+    user: document.getElementById("sy_user").value.trim(),
+    pass: document.getElementById("sy_pass").value,
+    db:   document.getElementById("sy_db").value.trim() || "ankaufsbuch"
+  });
+  const melden = (art,text)=>{
+    document.getElementById("sy_out").innerHTML = `<div class="banner ${art}">${text}</div>`;
+  };
+
+  document.getElementById("sy_test").onclick = async ()=>{
+    const v = lesen();
+    if(!v.url){ melden("bad","Bitte die Adresse eintragen."); return; }
+    melden("info","Prüfe …");
+    try{
+      const info = await syncPruefen(v.url, v.user, v.pass, v.db);
+      melden("info", `<b>Verbindung steht.</b> ${info.doc_count} Dokumente in der Datenbank.`);
+    }catch(err){
+      melden("bad", `<b>Keine Verbindung.</b> ${String(err.message||err)}<br>
+        Prüfe: Ist Tailscale auf diesem Gerät an? Stimmt die Adresse samt Portnummer?`);
+    }
+  };
+  document.getElementById("sy_save").onclick = async ()=>{
+    const v = lesen();
+    if(!v.url){ melden("bad","Bitte die Adresse eintragen."); return; }
+    syncEinstellungSetzen(v);
+    syncStarten();
+    melden("info","<b>Gespeichert.</b> Der Abgleich läuft jetzt im Hintergrund.");
+    toast("Abgleich eingerichtet");
+  };
+  const aus = document.getElementById("sy_off");
+  if(aus) aus.onclick = ()=>{
+    syncStoppen(); syncEinstellungSetzen(null);
+    SY.an=false; SY.stand="aus"; SY.fehler="";
+    melden("info","Abgleich abgeschaltet. Die Daten im Gerät bleiben unberührt.");
+    toast("Abgleich aus");
+  };
+}
+
 function storeBtnState(){
   const lb = S.meta.lastBackup;
   const faellig = !lb || (Date.now()-lb)/864e5 > 7;
@@ -2749,7 +3165,7 @@ function phead(t,s){
   const m = S.meta;
   const lg = logoJetzt();
   const logo = lg ? `<img src="${lg}" alt="" style="height:18mm;width:18mm;object-fit:contain;float:right;margin-left:6mm">` : "";
-  return `<div class="phd">${logo}<h1>${t}</h1><div class="sub">${esc(m.name||"—")}${m.firma?" · "+esc(m.firma):""}${m.stnr?" · St.-Nr. "+esc(m.stnr):""}<br>${zeitraumText()}${s?" · "+s:""} · erstellt am ${new Date().toLocaleDateString("de-DE")} · Ankaufsbuch ${APP_VERSION}${m.marke?"<br>"+esc(m.marke):""}</div><div style="clear:both"></div></div>`;
+  return `<div class="phd">${logo}<h1>${t}</h1><div class="sub">${esc(m.name||"—")}${m.firma?" · "+esc(m.firma):""}${m.stnr?" · St.-Nr. "+esc(m.stnr):""}<br>${zeitraumText()}${s?" · "+s:""} · erstellt am ${new Date().toLocaleDateString("de-DE")} · Ankaufsbuch ${APP_VERSION} · Rechenhilfe, keine Steuerberatung${m.marke?"<br>"+esc(m.marke):""}</div><div style="clear:both"></div></div>`;
 }
 function pJournal(){
   const ps = S.purchases.filter(p=>inYear(p,S.year) && !p.geloescht && imMonat(p.datum)).sort((a,b)=>a.beleg-b.beleg);
@@ -2803,22 +3219,77 @@ function pBelege(){
   }).join("");
 }
 function pMarge(){
-  const sold = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year) && imMonat(i.sale.datum));
-  const eSum = sold.reduce((a,i)=>a+num(i.ek),0), vSum = sold.reduce((a,i)=>a+num(i.sale.vk),0);
-  const unter = sold.filter(i=>num(i.ek)<=750);
-  if(!sold.length) return `<div class="page">${phead("Aufstellung nach § 25a UStG","Einzeldifferenz je Gegenstand")}
-    <p class="ptext">Im Geschäftsjahr ${S.year} wurde noch nichts verkauft. Sobald Verkäufe erfasst sind, stehen hier Einkaufspreis, Verkaufspreis und Differenz je Gegenstand.</p>
+  const alle = yearItems().filter(i=>i.sale && i.sale.datum.slice(0,4)==String(S.year) && imMonat(i.sale.datum));
+  const mit  = alle.filter(unter25a);
+  const ohne = alle.filter(i=>!unter25a(i));
+
+  if(!alle.length) return `<div class="page">${phead("Aufstellung nach § 25a UStG","Einzeldifferenz je Gegenstand")}
+    <p class="ptext">Im Zeitraum wurde nichts verkauft. Sobald Verkäufe erfasst sind, stehen hier Einkaufspreis, Verkaufspreis, Differenz und Bemessungsgrundlage je Gegenstand.</p>
     <p class="pnote">Erstellt als Vorsorge. Aktuell wird die Kleinunternehmerregelung nach § 19 UStG angewandt, Umsatzsteuer wird nicht ausgewiesen.</p></div>`;
+
+  const zeile = i => {
+    const p = S.purchases.find(x=>x.id===i.purchaseId)||{};
+    const d = num(i.sale.vk) - num(i.ek);
+    return `<tr><td class="mono">${String(p.beleg||0).padStart(4,"0")}</td><td>${esc(i.bez)}</td>
+      <td>${dstr(i.sale.datum)}</td>
+      <td class="n">${num(i.ek).toFixed(2).replace(".",",")}</td>
+      <td class="n">${num(i.sale.vk).toFixed(2).replace(".",",")}</td>
+      <td class="n">${d.toFixed(2).replace(".",",")}${i.sale.geschaetzt?" *":""}</td>
+      <td class="n">${d>0?bemessung(d).toFixed(2).replace(".",","):"—"}</td></tr>`;
+  };
+  const summe = (liste, f) => liste.reduce((a,i)=>a+num(f(i)),0);
+  const eSum = summe(mit, i=>i.ek), vSum = summe(mit, i=>i.sale.vk);
+  const dSum = Math.round((vSum-eSum)*100)/100;
+  const bSum = summe(mit, i=>{ const d = num(i.sale.vk)-num(i.ek); return d>0?bemessung(d):0; });
+  const uSum = summe(mit, i=>{ const d = num(i.sale.vk)-num(i.ek); return d>0?enthalteneUst(d):0; });
+  const negativ = mit.filter(i=>num(i.sale.vk)-num(i.ek) < 0).length;
+
+  // Gesamtdifferenz nur für Gegenstände bis 750 € Einkaufspreis
+  const gd = mit.filter(i=>num(i.ek) <= 750);
+  const gdE = summe(gd, i=>i.ek), gdV = summe(gd, i=>i.sale.vk);
+
+  const kopf = `<thead><tr><th>Beleg</th><th>Gegenstand</th><th>Verkauft am</th>
+    <th style="text-align:right">Einkauf</th><th style="text-align:right">Verkauf</th>
+    <th style="text-align:right">Differenz</th><th style="text-align:right">Bemessung</th></tr></thead>`;
+  const spalten = `<colgroup><col style="width:14mm"><col><col style="width:20mm">
+    <col style="width:19mm"><col style="width:19mm"><col style="width:19mm"><col style="width:21mm"></colgroup>`;
+
   return `<div class="page">${phead("Aufstellung nach § 25a UStG","Einzeldifferenz je Gegenstand")}
-  <table class="ptbl"><thead><tr><th>Beleg</th><th>Gegenstand</th><th>Verkauft am</th><th>Plattform</th><th style="text-align:right">Einkauf</th><th style="text-align:right">Verkauf</th><th style="text-align:right">Differenz</th></tr></thead><tbody>
-  ${sold.map(i=>{const p=S.purchases.find(x=>x.id===i.purchaseId)||{};return `<tr><td class="mono">${String(p.beleg||0).padStart(4,"0")}</td><td>${esc(i.bez)}</td><td>${dstr(i.sale.datum)}</td><td>${esc(i.sale.plattform||"")}</td>
-    <td class="n">${num(i.ek).toFixed(2).replace(".",",")}</td><td class="n">${num(i.sale.vk).toFixed(2).replace(".",",")}</td>
-    <td class="n">${(num(i.sale.vk)-num(i.ek)).toFixed(2).replace(".",",")}${i.sale.geschaetzt?" *":""}</td></tr>`;}).join("")}
+  ${mit.length ? `<table class="ptbl">${spalten}${kopf}<tbody>${mit.map(zeile).join("")}</tbody></table>
+  <div class="ptot">Einkauf ${eur(eSum)} · Verkauf ${eur(vSum)} · Differenz ${eur(dSum)}<br>
+  Bemessungsgrundlage ${eur(bSum)} · darin enthaltene Umsatzsteuer ${eur(uSum)}</div>`
+  : `<p class="ptext">Im Zeitraum wurde kein entgeltlich erworbener Gegenstand verkauft.</p>`}
+
+  <p class="pnote">Erstellt als Vorsorge. Aktuell wird die Kleinunternehmerregelung nach § 19 UStG angewandt, Umsatzsteuer wird nicht ausgewiesen.<br>
+  ${mit.some(i=>i.sale.geschaetzt) ? "* Verkaufspreis im Wege sachgerechter Schätzung aus dem Gesamterlös einer Verkaufsrunde abgeleitet.<br>" : ""}
+  Die Bemessungsgrundlage ist die Differenz abzüglich der darin enthaltenen Umsatzsteuer (${USATZ} %, § 25a Abs. 3 UStG).
+  ${negativ ? `${negativ} Position${negativ>1?"en weisen":" weist"} eine negative Differenz auf; negative Differenzen bleiben außer Ansatz.` : ""}</p>
+
+  <h3 class="psec">Gesamtdifferenz</h3>
+  <div class="ptext">
+  <p>Die Besteuerung nach der Gesamtdifferenz ist auf Gegenstände beschränkt, deren Einkaufspreis 750 € nicht übersteigt (§ 25a Abs. 4 S. 2 UStG in der seit dem 1.1.2025 geltenden Fassung). Das trifft auf ${gd.length} von ${mit.length} Positionen zu.</p>
+  <table class="ptbl" style="max-width:120mm"><colgroup><col><col style="width:30mm"></colgroup><tbody>
+    <tr><td>Summe Einkäufe bis 750 €</td><td class="n">${gdE.toFixed(2).replace(".",",")}</td></tr>
+    <tr><td>Summe zugehöriger Verkäufe</td><td class="n">${gdV.toFixed(2).replace(".",",")}</td></tr>
+    <tr><td style="font-weight:700">Gesamtdifferenz</td><td class="n" style="font-weight:700">${(gdV-gdE).toFixed(2).replace(".",",")}</td></tr>
+    <tr><td>Bemessungsgrundlage daraus</td><td class="n">${bemessung(gdV-gdE).toFixed(2).replace(".",",")}</td></tr>
   </tbody></table>
-  <div class="ptot">Summe Einkauf ${eur(eSum)} · Summe Verkauf ${eur(vSum)} · Gesamtdifferenz ${eur(vSum-eSum)}</div>
-  <p class="pnote">Erstellt als Vorsorge. Aktuell wird die Kleinunternehmerregelung nach § 19 UStG angewandt, Umsatzsteuer wird nicht ausgewiesen.<br>${sold.some(i=>i.sale.geschaetzt) ? "* Verkaufspreis im Wege sachgerechter Schätzung aus dem Gesamterlös einer Verkaufsrunde abgeleitet.<br>" : ""}
-  Die Besteuerung nach der Gesamtdifferenz setzt voraus, dass der Einkaufspreis je Gegenstand 750 € nicht übersteigt (§ 25a Abs. 4 S. 2 UStG, seit 1.1.2025). Davon erfüllen ${unter.length} von ${sold.length} Positionen die Voraussetzung.</p></div>`;
+  <p class="pnote">Bei einem Konvolut mit einem Gesamteinkaufspreis bis 750 € ist eine Aufteilung auf die einzelnen Gegenstände nicht erforderlich (UStAE Abschnitt 25a.1 Abs. 12). Liegt der Gesamtpreis darüber, wird er durch sachgerechte Schätzung verteilt.</p>
+  </div>
+
+  ${ohne.length ? `<h3 class="psec">Nicht unter § 25a UStG</h3>
+  <div class="ptext"><p>Die folgenden Verkäufe betreffen Ware, die nicht entgeltlich erworben wurde — Geschenke, Einlagen aus dem Privatvermögen, Erbstücke oder selbst hergestellte Gegenstände. § 25a UStG setzt einen entgeltlichen Erwerb voraus (UStAE Abschnitt 25a.1 Abs. 4); diese Umsätze fallen unter die Regelbesteuerung.</p></div>
+  <table class="ptbl"><colgroup><col style="width:14mm"><col><col style="width:20mm"><col style="width:34mm"><col style="width:22mm"></colgroup>
+  <thead><tr><th>Beleg</th><th>Gegenstand</th><th>Verkauft am</th><th>Herkunft</th><th style="text-align:right">Erlös</th></tr></thead><tbody>
+  ${ohne.map(i=>{ const p = S.purchases.find(x=>x.id===i.purchaseId)||{};
+    return `<tr><td class="mono">${String(p.beleg||0).padStart(4,"0")}</td><td>${esc(i.bez)}</td>
+      <td>${dstr(i.sale.datum)}</td><td>${esc(p.plattform||"—")}</td>
+      <td class="n">${num(i.sale.vk).toFixed(2).replace(".",",")}</td></tr>`;}).join("")}
+  </tbody></table>
+  <div class="ptot">Erlöse außerhalb § 25a: ${eur(summe(ohne, i=>i.sale.vk))}</div>` : ""}
+  </div>`;
 }
+
 function pLager(){
   const l = yearItems().filter(i=>!i.sale);
   return `<div class="page">${phead("Lagerliste zum 31.12."+S.year,"Nicht verkaufte Ware")}
@@ -2977,7 +3448,7 @@ function pVerfahren(){
     <li>Jeder Ankauf wird zeitnah am Kauftag erfasst, in einer lokalen Anwendung auf einem mobilen Endgerät.</li>
     <li>Erfasst werden: Kaufdatum, Kaufpreis, Zahlart, Name und Anschrift des Zahlungsempfängers, Nutzername der Plattform, Herkunft des Angebots, Bezeichnung des Gegenstands sowie eine Notiz.</li>
     <li>Als Nachweis werden Fotos der Ware sowie Bildschirmfotos der Anzeige, des Nachrichtenverlaufs und des Zahlungsnachweises hinterlegt.</li>
-    <li>Konvolute werden in Einzelpositionen zerlegt; der Kaufpreis wird im Wege sachgerechter Schätzung auf die Positionen verteilt.</li>
+    <li>Konvolute werden in Einzelpositionen zerlegt, sofern die Gegenstände einzeln weiterverkauft werden; der Kaufpreis wird dann im Wege sachgerechter Schätzung auf die Positionen verteilt.</li>
   </ul>
   <h3 class="psec">3. Belegnummern</h3>
   <p>Belege tragen fortlaufende Nummern im Format EB-JJJJ-NNNN, je Geschäftsjahr bei 0001 beginnend, ohne Lücken. Ein Beleg wird nie gelöscht. Fehlerhafte Belege werden als storniert gekennzeichnet, bleiben in der Nummernfolge und werden mit dem Vermerk „storniert“ ausgegeben.</p>
@@ -2987,7 +3458,10 @@ function pVerfahren(){
   <p>Bei Verkäufen über Live-Formate liegt teilweise nur der Gesamterlös einer Sendung vor, nicht der Einzelpreis je Gegenstand. In diesen Fällen wird der Gesamterlös im Verhältnis der Einkaufswerte auf die verkauften Gegenstände verteilt. Die betroffenen Positionen sind in den Auswertungen mit einem Sternchen gekennzeichnet. Die Summe der Einzelbeträge entspricht stets dem tatsächlich vereinnahmten Gesamterlös. Ware, die zum Zeitpunkt des Verkaufs noch nicht im Bestand erfasst war, wird mit einem eigenen Zugangsbeleg nachgetragen.</p>
 
   <h3 class="psec">5. Umsatzsteuer</h3>
-  <p>Es wird die Kleinunternehmerregelung nach § 19 UStG angewandt. Umsatzsteuer wird nicht ausgewiesen. Aus Ankäufen von Privatpersonen besteht kein Vorsteuerabzug. Einkaufspreis, Verkaufspreis und Differenz werden je Gegenstand getrennt aufgezeichnet, damit die Aufzeichnungspflichten des § 25a Abs. 6 UStG bei einem Wechsel zur Regelbesteuerung ohne Nacharbeit erfüllt sind.</p>
+  <p>Es wird die Kleinunternehmerregelung nach § 19 UStG angewandt. Umsatzsteuer wird nicht ausgewiesen. Aus Ankäufen von Privatpersonen besteht kein Vorsteuerabzug.</p>
+  <p>Für jeden Gegenstand werden Einkaufspreis, Verkaufspreis, Differenz und Bemessungsgrundlage getrennt aufgezeichnet, damit die Aufzeichnungspflichten des § 25a Abs. 6 UStG bei einem Wechsel zur Regelbesteuerung ohne Nacharbeit erfüllt sind. Die Bemessungsgrundlage ist die Differenz abzüglich der darin enthaltenen Umsatzsteuer; negative Differenzen bleiben außer Ansatz.</p>
+  <p>Unentgeltlich erworbene Ware — Geschenke, Einlagen aus dem Privatvermögen, Erbstücke — sowie selbst hergestellte Gegenstände werden gesondert geführt und in der Aufstellung als nicht unter § 25a UStG fallend ausgewiesen. § 25a UStG setzt einen entgeltlichen Erwerb voraus (UStAE Abschnitt 25a.1 Abs. 4); diese Umsätze fallen unter die Regelbesteuerung.</p>
+  <p>Bei Konvoluten mit einem Gesamteinkaufspreis bis 750 € unterbleibt eine Aufteilung auf die einzelnen Gegenstände; das Konvolut geht mit seinem Gesamtpreis in die Gesamtdifferenz ein (UStAE Abschnitt 25a.1 Abs. 12). Oberhalb dieser Grenze wird der Gesamtpreis durch sachgerechte Schätzung verteilt.</p>
   <h3 class="psec">6. Aufbewahrung und Sicherung</h3>
   <p>Die Daten liegen auf dem Endgerät. In regelmäßigen Abständen wird eine vollständige Sicherungsdatei einschließlich aller Bildnachweise erzeugt und in einem Cloud-Speicher abgelegt. Zum Jahresabschluss werden Ankaufsjournal, Eigenbelege, Aufstellung nach § 25a, Lagerliste und Kostenaufstellung als PDF erzeugt und unveränderbar archiviert. Buchungsbelege werden acht Jahre aufbewahrt, gerechnet ab dem Schluss des Kalenderjahres ihrer Entstehung (§ 147 AO in der ab 1.1.2025 geltenden Fassung).</p>
   <h3 class="psec">7. Änderungen</h3>
@@ -3214,6 +3688,9 @@ document.getElementById("sh2Cancel").onclick = closeSheet2;
 document.getElementById("sh2Save").onclick = ()=>{ const f = document.getElementById("sheet2")._save; if(f) f(); };
 document.getElementById("storeBtn").onclick = openStorage;
 document.getElementById("findBtn").onclick = openSuche;
+document.getElementById("sideFind").onclick = openSuche;
+document.getElementById("sideStore").onclick = openStorage;
+document.getElementById("sideLegal").onclick = openRecht;
 document.getElementById("buyMode").onclick = e=>{
   const b = e.target.closest("[data-mode]"); if(!b) return;
   S.buyMode = b.dataset.mode; renderBuys();
@@ -3243,6 +3720,7 @@ document.addEventListener("click", e=>{
     if(a==="runde") return openRunde(null);
     if(a==="papierkorb") return openPapierkorb();
     if(a==="nummern") return openNummern();
+    if(a==="einrichtung") return openEinrichtung();
     if(a==="langsteher"){ S.stockFilterWunsch="lager"; show("stock"); return; }
     if(a==="schwach"){ S.buyMode="liste"; show("buy"); return; }
   }
@@ -3257,6 +3735,8 @@ document.addEventListener("click", e=>{
     if(a.dataset.act==="import") return openImport();
     if(a.dataset.act==="csv") return csv();
     if(a.dataset.act==="stamm") return openStamm();
+    if(a.dataset.act==="recht") return openRecht();
+    if(a.dataset.act==="einrichtung") return openEinrichtung();
     if(a.dataset.act==="papierkorb") return openPapierkorb();
     if(a.dataset.act==="nummern") return openNummern();
   }
@@ -3342,6 +3822,7 @@ document.getElementById("verStamp").textContent = APP_VERSION;
   // Speicher als dauerhaft anmelden, damit iOS ihn nicht aufräumt
   try{ if(navigator.storage && navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
   await reload();
+  syncStarten();
 })();
 // Offline-Cache: einmal geladen, läuft die App auch ohne Netz
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){

@@ -204,6 +204,72 @@ pruefe(Object.keys(BILDART).length === 4, "BILDART deckt alle vier Datenarten ab
     pruefe(artVorschlag({name:"KURT "}, {kurt:"ankauf"}) === "ankauf", "gemerkter Name wird wiedererkannt");
   }
 
+
+  /* ---------- Umsatzsteuer nach § 25a ---------- */
+  console.log("\nUmsatzsteuer nach Paragraf 25a");
+  {
+    const USATZ = 19;
+    const bemessung = d => { d = Math.max(0,d); return Math.round((d - d*USATZ/(100+USATZ))*100)/100; };
+    const enthalteneUst = d => { d = Math.max(0,d); return Math.round(d*USATZ/(100+USATZ)*100)/100; };
+    const unter25a = (plattform, zahlart, betrag) => {
+      if (/geschenk|einlage|eigenherstellung|erb/i.test(plattform || "")) return false;
+      if (zahlart === "keine") return false;
+      return betrag > 0;
+    };
+    pruefe(enthalteneUst(80) === 12.77, "Einkauf 120, Verkauf 200: enthaltene Umsatzsteuer 12,77");
+    pruefe(bemessung(80) === 67.23, "dazu die Bemessungsgrundlage 67,23");
+    pruefe(Math.round((bemessung(80) + enthalteneUst(80)) * 100) / 100 === 80,
+      "Bemessungsgrundlage und Umsatzsteuer ergeben zusammen die Differenz");
+    pruefe(enthalteneUst(200) === 31.93, "ohne Einkaufsnachweis: 31,93 statt 12,77");
+    pruefe(bemessung(-50) === 0 && enthalteneUst(-50) === 0, "negative Differenz bleibt ausser Ansatz");
+    pruefe(unter25a("Kleinanzeigen", "ueberweisung", 120) === true, "entgeltlicher Ankauf faellt unter 25a");
+    pruefe(unter25a("Geschenk / Einlage", "keine", 0) === false, "Geschenk faellt nicht unter 25a");
+    pruefe(unter25a("Eigenherstellung", "keine", 15) === false, "selbst Hergestelltes faellt nicht unter 25a");
+    const quelle = require("fs").readFileSync(__dirname + "/index.html", "utf8");
+    pruefe(/function unter25a/.test(quelle), "die Trennung ist in der App verbaut");
+    pruefe(/Nicht unter § 25a UStG/.test(quelle), "die Aufstellung weist beide Toepfe getrennt aus");
+    pruefe(/Bemessungsgrundlage ist die Differenz abz/.test(quelle), "die Bemessungsgrundlage wird erlaeutert");
+    pruefe(/750 € nicht übersteigt/.test(quelle), "die 750-Euro-Grenze steht im Bericht");
+  }
+
+
+  /* ---------- Aufbau fuer PC und Handy ---------- */
+  console.log("\nAufbau fuer PC und Handy");
+  {
+    const quelle = require("fs").readFileSync(__dirname + "/index.html", "utf8");
+    pruefe(/@media \(min-width:900px\)/.test(quelle), "eigene Darstellung fuer breite Bildschirme");
+    pruefe((quelle.match(/data-v="home"/g) || []).length === 1, "die Navigation ist nur einmal vorhanden");
+    pruefe(/nav id="hauptNav"/.test(quelle), "die Navigation liegt in der Kopf- bzw. Seitenleiste");
+    pruefe((quelle.match(/class="sheetbox"/g) || []).length === 2, "beide Formularfenster sind gekapselt");
+    pruefe(/function openRecht/.test(quelle), "der Rechtsbereich ist vorhanden");
+    pruefe(/StBerG/.test(quelle), "der Haftungsausschluss nennt das Steuerberatungsgesetz");
+    pruefe(/Rechenhilfe, keine Steuerberatung/.test(quelle), "jeder Ausdruck traegt den Hinweis");
+    pruefe(/keine Auftragsverarbeitung/.test(quelle), "der Datenhinweis klaert die Auftragsverarbeitung");
+  }
+
+
+  /* ---------- Ersteinrichtung ---------- */
+  console.log("\nErsteinrichtung");
+  {
+    const quelle = require("fs").readFileSync(__dirname + "/index.html", "utf8");
+    pruefe(/function einrichtung\(\)/.test(quelle), "die Einrichtungsliste ist vorhanden");
+    pruefe(/function openEinrichtung/.test(quelle), "der Einrichtungsdialog ist vorhanden");
+    pruefe(/A\.unshift\(\["var\(--stamp\)", `Einrichtung/.test(quelle), "offene Punkte stehen ganz oben auf der Uebersicht");
+
+    const fertig = m => [
+      !!(m.name && m.name.trim()),
+      !!(m.stnr && m.stnr.trim()),
+      !!m.sigAussteller,
+      m.aufschlag !== undefined && m.aufschlag !== null && m.aufschlag !== "",
+      !!m.lastBackup
+    ];
+    pruefe(fertig({}).filter(Boolean).length === 0, "ein leeres Buch meldet alle fuenf Punkte offen");
+    pruefe(fertig({name:"A", stnr:"1", sigAussteller:"x", aufschlag:100, lastBackup:1}).every(Boolean),
+      "vollstaendig eingerichtet meldet nichts mehr");
+    pruefe(fertig({name:"  "}).filter(Boolean).length === 0, "Leerzeichen zaehlen nicht als Angabe");
+    pruefe(fertig({aufschlag:0})[3] === true, "ein Aufschlag von 0 gilt als gesetzt");
+  }
+
   console.log(fehler ? `\n${fehler} Fehler.\n` : "\nLogik in Ordnung.\n");
   process.exit(fehler ? 1 : 0);
 })();
